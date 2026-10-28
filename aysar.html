@@ -1,0 +1,3369 @@
+<!DOCTYPE html>
+
+<html dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>عيصر - Aysar Code Editor</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700&amp;family=Amiri:ital,wght@0,400;0,700;1,400&amp;family=Cairo:wght@400;600;700&amp;family=Changa:wght@400;600&amp;family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&amp;family=Marhey:wght@400;600;700&amp;family=Tajawal:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #eef1ee;
+    --panel: #ffffff;
+    --activity-bg: #e5ece6;
+    --ink: #17252a;
+    --muted: #5d6b6f;
+    --line: #d3dbd6;
+    --accent: #1f4fd8;
+    --accent-ink: #ffffff;
+    --ok: #17724a;
+    --editor-bg: #ffffff;
+    --dot-color: #1f4fd8;
+    --status-bg: #1f4fd8;
+    --status-fg: #ffffff;
+    --text-font-family: 'IBM Plex Sans Arabic', system-ui, sans-serif;
+    --comment-weight: normal;
+    color-scheme: light;
+  }
+  /* 1. داكن هادئ (Dark Slate) */
+  [data-theme="dark-slate"] {
+    --bg: #0f171d;
+    --panel: #172228;
+    --activity-bg: #121c21;
+    --ink: #e2e8f0;
+    --muted: #82929e;
+    --line: #263842;
+    --accent: #38bdf8;
+    --accent-ink: #082f49;
+    --ok: #4ade80;
+    --editor-bg: #172228;
+    --dot-color: #38bdf8;
+    --status-bg: #0b1216;
+    --status-fg: #94a3b8;
+    color-scheme: dark;
+  }
+  /* 2. سايبربانك نيون (Cyberpunk / Matrix) */
+  [data-theme="cyberpunk"] {
+    --bg: #050b07;
+    --panel: #0a160f;
+    --activity-bg: #060f0a;
+    --ink: #a7f3d0;
+    --muted: #22c55e;
+    --line: #143521;
+    --accent: #00ff66;
+    --accent-ink: #021a08;
+    --ok: #00ff9d;
+    --editor-bg: #0a160f;
+    --dot-color: #00ff66;
+    --status-bg: #030805;
+    --status-fg: #00ff66;
+    color-scheme: dark;
+  }
+  /* 3. سيبيا دافئ (Warm Sepia / Coffee) */
+  [data-theme="warm-sepia"] {
+    --bg: #f4ece1;
+    --panel: #fcf9f2;
+    --activity-bg: #ece0d1;
+    --ink: #43302b;
+    --muted: #846d62;
+    --line: #dfd2be;
+    --accent: #a85832;
+    --accent-ink: #ffffff;
+    --ok: #2e7d32;
+    --editor-bg: #fcf9f2;
+    --dot-color: #a85832;
+    --status-bg: #a85832;
+    --status-fg: #fff7ed;
+    color-scheme: light;
+  }
+  /* 4. سماوي ليلي (Nord / Deep Navy) */
+  [data-theme="nord-navy"] {
+    --bg: #212733;
+    --panel: #293140;
+    --activity-bg: #1b212c;
+    --ink: #eceff4;
+    --muted: #889bb3;
+    --line: #3b465c;
+    --accent: #88c0d0;
+    --accent-ink: #1b222d;
+    --ok: #a3be8c;
+    --editor-bg: #293140;
+    --dot-color: #88c0d0;
+    --status-bg: #181d27;
+    --status-fg: #d8dee9;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--text-font-family);
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 8px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+    overflow: hidden;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  h1 { font-size: 22px; font-weight: 600; margin: 0; margin-inline-end: auto; display: flex; align-items: center; gap: 6px; }
+  .theme-wrapper, .tool-group {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0 8px;
+    gap: 6px;
+    height: 38px;
+  }
+  .theme-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--dot-color);
+    box-shadow: 0 0 6px var(--dot-color);
+    transition: background-color 0.25s ease, box-shadow 0.25s ease;
+    flex-shrink: 0;
+  }
+  .theme-icon, .tool-icon {
+    font-size: 14px;
+    line-height: 1;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+  }
+  .theme-wrapper select, .tool-group select {
+    border: none;
+    padding-inline-start: 2px;
+    background: transparent;
+    height: 100%;
+  }
+  .theme-wrapper select:focus-visible, .tool-group select:focus-visible {
+    outline: none;
+  }
+  .theme-wrapper:focus-within, .tool-group:focus-within {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  select, button {
+    font: inherit;
+    font-size: 13.5px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 11px;
+    cursor: pointer;
+    transition: border-color 0.2s, background-color 0.2s, color 0.2s, box-shadow 0.2s;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+  }
+  button.primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border-color: var(--accent);
+    font-weight: 600;
+  }
+  button.primary:hover {
+    filter: brightness(1.08);
+  }
+  button[aria-pressed="true"] {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  button#font-bold[aria-pressed="true"] {
+    font-weight: 800;
+    border-color: var(--accent);
+  }
+  /* Pulse animation for sci-fi ambient music active state */
+  button#music[aria-pressed="true"] .music-indicator {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--ok);
+    box-shadow: 0 0 6px var(--ok);
+    animation: aysar-pulse-music 1.4s infinite ease-in-out;
+  }
+  @keyframes aysar-pulse-music {
+    0%, 100% { transform: scale(0.9); opacity: 0.6; }
+    50% { transform: scale(1.3); opacity: 1; }
+  }
+  select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* ===== WORKSPACE WITH ACTIVITY BAR ===== */
+  #app-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    gap: 8px;
+    position: relative;
+  }
+
+  /* VS Code Activity Bar */
+  #activity-bar {
+    width: 48px;
+    background: var(--activity-bg);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    flex-shrink: 0;
+    user-select: none;
+    z-index: 20;
+    transition: background-color 0.25s, border-color 0.25s;
+  }
+  .act-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    width: 100%;
+    align-items: center;
+  }
+  .act-btn {
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: transparent;
+    border-radius: 6px;
+    color: var(--muted);
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    font-size: 19px;
+    transition: color 0.15s, background-color 0.15s;
+  }
+  .act-btn:hover {
+    color: var(--ink);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .act-btn.active {
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 15%, transparent);
+  }
+  .act-btn.active::before {
+    content: '';
+    position: absolute;
+    inset-inline-start: 0;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .act-badge {
+    position: absolute;
+    top: 4px;
+    inset-inline-end: 4px;
+    background: var(--accent);
+    color: var(--accent-ink);
+    font-size: 10px;
+    font-weight: 700;
+    height: 15px;
+    min-width: 15px;
+    padding: 0 4px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    font-family: "JetBrains Mono", sans-serif;
+  }
+
+  /* Main editor area + header tab action bar */
+  main {
+    flex: 1;
+    min-width: 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+  }
+  .editor-header-bar {
+    height: 38px;
+    background: color-mix(in srgb, var(--panel) 92%, var(--bg));
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    gap: 8px;
+    user-select: none;
+    flex-shrink: 0;
+  }
+  .editor-tabs {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    height: 100%;
+    scrollbar-width: none;
+  }
+  .editor-tabs::-webkit-scrollbar { display: none; }
+  .editor-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 12px;
+    height: 32px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    font-size: 13px;
+    font-family: "JetBrains Mono", monospace;
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .editor-tab-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: inline-block;
+  }
+  .editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .editor-act-btn {
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .editor-act-btn:hover {
+    color: var(--ink);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+    border-color: var(--line);
+  }
+  .editor-act-btn.run-btn {
+    color: var(--ok);
+  }
+  .editor-act-btn.run-btn:hover {
+    background: color-mix(in srgb, var(--ok) 18%, transparent);
+  }
+
+  /* مساحة الكود تبقى من اليسار لليمين دائماً */
+  .editor-container {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+  }
+  #editor { width: 100%; height: 100%; direction: ltr; text-align: left; }
+  /* تطبيق الخط المخصص للتعليقات والنصوص داخل Monaco Editor */
+  .monaco-editor .mtk3,
+  .monaco-editor .token.comment,
+  .monaco-editor .comment {
+    font-family: var(--text-font-family), "JetBrains Mono", monospace !important;
+    font-weight: var(--comment-weight) !important;
+    letter-spacing: 0.2px;
+  }
+  /* لمن يكتب تعليقات عربية */
+  .monaco-editor [class*="mtk"] {
+    font-variant-ligatures: normal;
+  }
+
+  /* ===== VS CODE STATUS BAR ===== */
+  footer {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--status-fg);
+    background: var(--status-bg);
+    border-radius: 6px;
+    padding: 0 10px;
+    height: 28px;
+    align-items: center;
+    overflow: hidden;
+    user-select: none;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.12);
+    font-family: "JetBrains Mono", var(--text-font-family), sans-serif;
+  }
+  .status-left, .status-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 100%;
+    min-width: 0;
+  }
+  .status-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    height: 100%;
+    padding: 0 6px;
+    cursor: pointer;
+    border-radius: 3px;
+    white-space: nowrap;
+    transition: background 0.15s;
+    font-size: 11.5px;
+  }
+  .status-item:hover {
+    background: rgba(255,255,255,0.15);
+  }
+  #status {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 480px;
+    font-size: 11.5px;
+  }
+  #status.done { color: var(--ok); font-weight: 600; }
+  kbd {
+    font-family: "JetBrains Mono", ui-monospace, Consolas, monospace;
+    font-size: 11px;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 3px;
+    padding: 0px 4px;
+    background: rgba(0,0,0,0.15);
+    color: inherit;
+  }
+  /* تأثير الضباب على السطر أثناء التحويل */
+  .monaco-editor .aysar-fog-line {
+    background: linear-gradient(100deg, transparent 0%, color-mix(in srgb, var(--accent) 28%, transparent) 50%, transparent 100%);
+    background-size: 250% 100%;
+    animation: aysar-sweep 1.6s linear infinite;
+  }
+  .monaco-editor .aysar-fog-text {
+    color: transparent !important;
+    text-shadow: 0 0 7px var(--ink);
+    animation: aysar-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes aysar-sweep { from { background-position: 150% 0; } to { background-position: -50% 0; } }
+  @keyframes aysar-pulse {
+    0%, 100% { text-shadow: 0 0 5px var(--ink); opacity: .6; }
+    50% { text-shadow: 0 0 11px var(--ink); opacity: 1; }
+  }
+  /* تأثير ظهور الكود بعد التحويل: يتضح من الضباب مع وميض أخضر خفيف */
+  .monaco-editor .aysar-reveal-line { animation: aysar-flash 1.2s ease-out; }
+  .monaco-editor .aysar-reveal-text { animation: aysar-unblur .8s ease-out; }
+  @keyframes aysar-flash { from { background: color-mix(in srgb, var(--ok) 30%, transparent); } }
+  @keyframes aysar-unblur { from { color: transparent; text-shadow: 0 0 8px var(--ink); opacity: .3; } }
+  /* لمن عنده إعداد "تقليل الحركة" بجهازه: لمعة ثابتة بدون حركة */
+  @media (prefers-reduced-motion: reduce) {
+    .monaco-editor .aysar-fog-line,
+    .monaco-editor .aysar-fog-text,
+    .monaco-editor .aysar-reveal-line,
+    .monaco-editor .aysar-reveal-text { animation: none; }
+    .monaco-editor .aysar-fog-line { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  }
+  /* ===== الفضاء + الملفات ===== */
+  #btn-space { background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 60%, #0284c7 100%); color: #f0fdf4; border-color: #818cf8; font-weight: 600; }
+  #work { display: flex; flex: 1; min-height: 0; gap: 8px; }
+  body.in-space #work { display: none; }
+  #explorer { width: 270px; flex-shrink: 0; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 13px; transition: width 0.2s; }
+  #explorer.collapsed { display: none; }
+  .ex-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .ex-btns { display: flex; gap: 4px; }
+  .ex-head button { height: 26px; padding: 0 8px; font-size: 12px; }
+  .ex-folder { margin-top: 10px; padding: 3px 6px; font-weight: 600; cursor: pointer; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; }
+  .ex-folder.cur { color: var(--accent); }
+  .ex-file { display: flex; align-items: center; gap: 6px; padding: 5px 8px; border-radius: 6px; cursor: pointer; }
+  .ex-file:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .ex-file.on { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .ex-name { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; direction: ltr; white-space: nowrap; }
+  .ex-desc { color: var(--muted); font-size: 12px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ex-desc.none { opacity: .55; font-style: italic; }
+  .ex-acts { display: flex; gap: 2px; flex-shrink: 0; }
+  .ex-del, .ex-edit { height: 22px; padding: 0 6px; font-size: 11px; opacity: .45; }
+  .ex-file:hover .ex-del, .ex-file:hover .ex-edit, .ex-folder:hover .ex-edit { opacity: 1; }
+  #info-pop { position: fixed; z-index: 1000; width: 290px; padding: 12px; display: flex; flex-direction: column; gap: 8px; font-size: 13px;
+    background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.45); }
+  #info-pop button { height: 32px; }
+  .ip-title { font-weight: 600; }
+  .ip-label { display: flex; flex-direction: column; gap: 4px; color: var(--muted); font-size: 12px; }
+  .ip-input { height: 34px; padding: 0 10px; font: inherit; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+  .ip-err { color: #ef4444; font-size: 12px; }
+  .ip-row { display: flex; gap: 8px; justify-content: flex-end; }
+  @media (max-width: 760px) { #explorer { width: 170px; } }
+  #space-view { display: none; flex: 1; min-height: 0; position: relative; overflow: hidden; cursor: grab; user-select: none;
+    border: 1px solid var(--line); border-radius: 8px;
+    background: radial-gradient(ellipse at 50% 30%, #171038 0%, #0a071d 55%, #020108 100%); }
+  body.in-space #space-view { display: block; }
+  body.in-space #app-body > #work { display: none; }
+  #space-stars { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  #space-stage { position: absolute; top: 0; left: 0; width: 0; height: 0; transform-origin: 0 0; }
+  .sp-card { position: absolute; display: flex; flex-direction: column; direction: ltr; color: #e2e8f0; border-radius: 14px; cursor: auto; user-select: auto; }
+  .sp-head { height: 32px; padding: 0 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; cursor: move; font-size: 12.5px; }
+  .sp-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: text; }
+  .sp-name { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; opacity: .9; }
+  .sp-desc { opacity: .6; direction: rtl; unicode-bidi: plaintext; }
+  .sp-desc.none { opacity: .35; font-style: italic; }
+  .sp-actions { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+  .sp-actions select, .sp-actions button { height: 24px; padding: 0 8px; font-size: 11.5px; border-radius: 5px; color: #e2e8f0; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); }
+  .sp-actions select option, .space-hud select option { background: #0d1224; color: #f1f5f9; }
+  .sp-body { flex: 1; min-height: 0; overflow: hidden; }
+  .sp-resize { position: absolute; right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; background: linear-gradient(135deg, transparent 50%, rgba(129,140,248,.7) 50%); }
+  .space-hud { position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 8px;
+    padding: 6px 12px; border-radius: 30px; background: rgba(9,12,26,.88); border: 1px solid rgba(129,140,248,.35); backdrop-filter: blur(14px); cursor: default; max-width: 96%; flex-wrap: wrap; justify-content: center; }
+  .space-hud button, .space-hud select { height: 32px; border-radius: 20px; padding: 0 12px; font-size: 12.5px; color: #f1f5f9; background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.15); }
+  #sp-zoom { color: #94a3b8; font-size: 12px; min-width: 44px; text-align: center; }
+  body:not(.frameless) .sp-card { background: rgba(11,15,30,.85); backdrop-filter: blur(18px); border: 1px solid rgba(129,140,248,.35);
+    box-shadow: 0 20px 50px -10px rgba(0,0,0,.8), 0 0 30px rgba(99,102,241,.18); overflow: hidden; }
+  body:not(.frameless) .sp-card.sel { border-color: #38bdf8; }
+  body:not(.frameless) .sp-head { background: rgba(255,255,255,.05); border-bottom: 1px solid rgba(255,255,255,.09); }
+  body.frameless .sp-card { background: radial-gradient(ellipse at center, rgba(3,2,8,.62) 0%, rgba(3,2,8,.42) 55%, rgba(3,2,8,0) 100%); border: 1px dashed transparent; }
+  body.frameless .sp-card:hover { border-color: rgba(129,140,248,.45); }
+  body.frameless .sp-card.sel { border-color: rgba(56,189,248,.6); }
+  body.frameless .sp-actions, body.frameless .sp-resize { opacity: 0; transition: opacity .2s; }
+  body.frameless .sp-card:hover .sp-actions, body.frameless .sp-card.sel .sp-actions,
+  body.frameless .sp-card:focus-within .sp-actions, body.frameless .sp-card:hover .sp-resize { opacity: 1; }
+  body.frameless .sp-card .monaco-editor, body.frameless .sp-card .monaco-editor-background,
+  body.frameless .sp-card .monaco-editor .margin, body.frameless .sp-card .monaco-editor .margin-view-overlays { background-color: transparent !important; }
+  body.frameless .sp-card .monaco-editor .view-line { text-shadow: 0 0 8px rgba(3,2,8,.95), 0 0 18px rgba(3,2,8,.85); }
+
+  .sp-frame { position: absolute; border: 1.5px dashed rgba(129,140,248,.5); border-radius: 18px; background: rgba(99,102,241,.05); pointer-events: none; }
+  .sp-frame.cur { border-color: rgba(56,189,248,.8); background: rgba(56,189,248,.06); }
+  .fr-head { pointer-events: auto; position: absolute; top: 0; left: 0; right: 0; height: 36px; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px; cursor: move; color: #cbd5e1; font-size: 13px; font-weight: 600; direction: ltr; }
+  .fr-acts { display: flex; gap: 4px; opacity: .45; transition: opacity .2s; }
+  .fr-head:hover .fr-acts { opacity: 1; }
+  .fr-acts button { height: 24px; padding: 0 7px; font-size: 11.5px; border-radius: 5px; color: #e2e8f0; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.14); }
+  .ex-folder.drop, .ex-file.drop { outline: 2px dashed var(--accent); }
+
+  /* ===== الحفظ على القرص ===== */
+  .disk-bar { margin: 0 0 8px; padding: 8px; border: 1px solid var(--line); border-radius: 8px; background: color-mix(in srgb, var(--accent) 5%, transparent);
+    font-size: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .disk-row { display: flex; gap: 4px; flex-wrap: wrap; }
+  .disk-row button, .disk-state button { height: 28px; padding: 0 8px; font-size: 12px; }
+  .disk-state { color: var(--muted); display: flex; align-items: center; flex-wrap: wrap; gap: 2px; }
+  .disk-state .dirty { color: #f59e0b; font-weight: 600; }
+  .disk-state .saved { color: var(--ok); font-weight: 600; }
+  .disk-auto { display: flex; align-items: center; gap: 6px; color: var(--muted); cursor: pointer; }
+
+  /* زر الفضاء بشريط الأنشطة */
+  #act-space { font-size: 19px; }
+  .fab-space { position: fixed; bottom: 46px; inset-inline-start: 16px; z-index: 60; width: 44px; height: 44px; border-radius: 50%; padding: 0; font-size: 20px;
+    background: linear-gradient(135deg, #1e1b4b, #4338ca 60%, #0284c7); color: #fff; border: 1px solid #818cf8; box-shadow: 0 6px 20px rgba(0,0,0,.4); }
+
+  /* ===== الجسر المحلي ولوحة المخرجات ===== */
+  #run-panel { position: fixed; left: 10px; right: 10px; bottom: 44px; height: 260px; z-index: 900; display: flex; flex-direction: column;
+    background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 12px 40px rgba(0,0,0,.45); overflow: hidden; }
+  .rp-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; border-bottom: 1px solid var(--line); font-size: 12.5px; direction: ltr; }
+  .rp-title { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .rp-acts { display: flex; gap: 6px; }
+  .rp-acts button, .rp-in button { height: 26px; padding: 0 10px; font-size: 12px; }
+  .rp-out { flex: 1; margin: 0; padding: 8px 12px; overflow: auto; font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; font-size: 13px; white-space: pre-wrap; direction: ltr; text-align: left; }
+  .rp-err { color: #ef4444; }
+  .rp-meta { color: var(--muted); }
+  .rp-in { display: flex; gap: 6px; padding: 6px 10px; border-top: 1px solid var(--line); }
+  .rp-input { flex: 1; height: 28px; padding: 0 10px; font: inherit; font-size: 13px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; direction: ltr; }
+
+  /* ===== تبويبات + بحث + لوحة الأوامر ===== */
+  .editor-tab { cursor: pointer; opacity: .72; transition: opacity .15s; }
+  .editor-tab:hover { opacity: 1; }
+  .editor-tab.active { opacity: 1; background: var(--panel); border-color: var(--accent); box-shadow: inset 0 -2px 0 var(--accent); }
+  .tab-name { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tab-x { height: 18px; min-width: 18px; padding: 0; font-size: 11px; line-height: 1; border: none; background: transparent; border-radius: 4px; opacity: .55; cursor: pointer; color: var(--ink); }
+  .tab-x:hover { opacity: 1; background: color-mix(in srgb, var(--ink) 15%, transparent); }
+  .tab-x.dirty { color: #f59e0b; opacity: 1; }
+  #search-panel { width: 300px; flex-shrink: 0; overflow: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 8px; font-size: 13px; }
+  .sr-row { display: flex; gap: 4px; margin-bottom: 6px; }
+  .sr-input { flex: 1; min-width: 0; height: 30px; padding: 0 8px; font: inherit; font-size: 13px; color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+  .sr-tog, .sr-all { height: 30px; min-width: 30px; padding: 0 6px; font-size: 12px; }
+  .sr-sum { color: var(--muted); font-size: 12px; margin: 4px 2px 8px; }
+  .sr-file { margin-top: 8px; font-weight: 600; color: var(--accent); font-size: 12.5px; direction: ltr; text-align: left; }
+  .sr-match { display: flex; gap: 8px; padding: 3px 6px; border-radius: 5px; cursor: pointer; direction: ltr; font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; font-size: 12px; }
+  .sr-match:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .sr-ln { color: var(--muted); min-width: 24px; text-align: right; }
+  .sr-txt { white-space: pre; overflow: hidden; text-overflow: ellipsis; }
+  .sr-txt mark { background: color-mix(in srgb, var(--accent) 38%, transparent); color: inherit; border-radius: 2px; }
+  #palette-bg { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,.35); display: flex; justify-content: center; align-items: flex-start; padding-top: 12vh; }
+  #palette { width: min(640px, 92vw); background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.5); overflow: hidden; }
+  #palette input { width: 100%; height: 46px; border: none; border-bottom: 1px solid var(--line); background: transparent; color: var(--ink); font: inherit; font-size: 15px; padding: 0 16px; outline: none; }
+  .pal-list { max-height: 50vh; overflow: auto; }
+  .pal-item { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 16px; cursor: pointer; }
+  .pal-item.sel { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+  .pal-detail { color: var(--muted); font-size: 12px; direction: ltr; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pal-empty { padding: 14px 16px; color: var(--muted); }
+
+  /* ===== الفضاء بنفس مزايا المحرر العادي: القائمة الجانبية (المستكشف/البحث/الحفظ/الجسر) بتضل ظاهرة بجنب الفضاء ===== */
+  body.in-space #work, body.in-space #app-body > #work { display: flex !important; flex: 0 0 auto !important; }
+  body.in-space #work > main { display: none !important; }
+  body.in-space #space-view { flex: 1 1 0; min-width: 0; }
+  #sp-save.dirty { color: #f59e0b; border-color: #f59e0b; }
+  .aysar-hit { background: color-mix(in srgb, #f59e0b 45%, transparent); border-radius: 2px; }
+  .sr-scope { flex: 1; min-width: 0; height: 28px; padding: 0 6px; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+<h1 id="t-title">عيصر</h1>
+<button id="btn-space" title="التبديل بين المحرر التقليدي ومساحة الفضاء">🌌 <span id="btn-space-txt">الفضاء</span></button>
+<button aria-pressed="true" id="btn-rule" title="قاعدة اختيارية: أول سطر بكل ملف تعليق يوصف الملف">📝 <span id="btn-rule-txt">الوصف</span></button>
+<!-- مظهر المحرر -->
+<div class="theme-wrapper" title="اختر مظهر المحرر">
+<span class="theme-icon">🎨</span>
+<span class="theme-dot" id="theme-dot"></span>
+<select aria-label="Editor Theme" id="theme">
+<option value="light">فاتح قياسي (Aysar Light)</option>
+<option value="dark-slate">داكن هادئ (Dark Slate)</option>
+<option value="cyberpunk">سايبربانك نيون (Cyberpunk)</option>
+<option value="warm-sepia">سيبيا دافئ (Warm Sepia)</option>
+<option value="nord-navy">سماوي ليلي (Nord Navy)</option>
+</select>
+</div>
+<!-- قائمة تخصيص خط النصوص والتعليقات -->
+<div class="tool-group" title="خط التعليقات والنصوص العربية">
+<span class="tool-icon">✍️</span>
+<select aria-label="Text &amp; Comment Font" id="text-font">
+<option value="'IBM Plex Sans Arabic', system-ui, sans-serif">IBM Plex Sans (متزن)</option>
+<option value="'Cairo', system-ui, sans-serif">Cairo (عصري وحيوي)</option>
+<option value="'Amiri', serif">Amiri (أصيل وتقليدي)</option>
+<option value="'Tajawal', sans-serif">Tajawal (هندسي مريح)</option>
+<option value="'Almarai', sans-serif">Almarai (سلس للمقروئية)</option>
+<option value="'Marhey', sans-serif">Marhey (مرح وعفوي)</option>
+<option value="'Changa', sans-serif">Changa (صلب وواضح)</option>
+</select>
+</div>
+<!-- زر تسميك خط النصوص والتعليقات -->
+<button aria-label="Toggle Bold Comments" aria-pressed="false" id="font-bold" title="تسميك خط الشرح والتعليقات (Bold)">
+<strong style="font-size:15px;">B</strong>
+<span id="bold-label" style="font-size:12px;">عريض</span>
+</button>
+<!-- لغة البرمجة -->
+<select aria-label="language" id="lang">
+<option value="python">Python</option>
+<option value="javascript">JavaScript</option>
+<option value="dart">Dart</option>
+<option value="typescript">TypeScript</option>
+<option value="html">HTML</option>
+<option value="css">CSS</option>
+<option value="markdown">Markdown</option>
+<option value="json">JSON</option>
+<option value="yaml">YAML</option>
+<option value="plaintext">Text</option>
+</select>
+<!-- زر المؤثرات النقرية -->
+<button aria-pressed="false" id="sound" title="أصوات نقرات المفاتيح والمؤثرات"></button>
+<!-- زر موسيقى خيال علمي هادئة (Ambient Drone) -->
+<button aria-pressed="false" id="music" title="موسيقى خيال علمي هادئة للتركيز والبرمجة">
+<span class="music-indicator"></span>
+<span id="music-label">الموسيقى: خيال علمي 🛸</span>
+</button>
+<button class="primary" id="convert"></button>
+<button id="ui-lang">English</button>
+<button id="btn-logout" title="تسجيل الخروج">خروج</button>
+</header>
+<!-- هيكل العمل مدمج مع شريط نشاط VS Code -->
+<div id="app-body">
+<!-- شريط أنشطة VS Code Activity Bar -->
+<aside id="activity-bar">
+<div class="act-group">
+<!-- Explorer -->
+<button class="act-btn active" id="act-explorer" title="المستكشف (Ctrl+Shift+E) / Explorer">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+</button>
+<!-- Search -->
+<button class="act-btn" id="act-search" title="البحث في كل الملفات (Ctrl+Shift+F) / Search">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><circle cx="11" cy="11" r="8"></circle><line x1="21" x2="16.65" y1="21" y2="16.65"></line></svg>
+</button>
+<!-- Source Control / Git with Badge -->
+<button class="act-btn" id="act-git" title="التحكم بالمصدر (Git) / Source Control">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><line x1="6" x2="6" y1="9" y2="21"></line></svg>
+<span class="act-badge">1</span>
+</button>
+<!-- Run & Debug -->
+<button class="act-btn" id="act-debug" title="التشغيل وتصحيح الأخطاء / Run &amp; Debug">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><polygon points="5 3 19 12 5 21 5 3"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg>
+</button>
+<!-- Extensions / Marketplace -->
+<button class="act-btn" id="act-extensions" title="الإضافات والمكونات / Extensions">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><rect height="7" width="7" x="3" y="3"></rect><rect height="7" width="7" x="14" y="3"></rect><rect height="7" width="7" x="14" y="14"></rect><rect height="7" width="7" x="3" y="14"></rect></svg>
+</button>
+<button class="act-btn" id="act-space" title="الفضاء 🌌 / Space">🌌</button>
+</div>
+<!-- Bottom activity group: Accounts & Settings -->
+<div class="act-group">
+<button class="act-btn" id="act-account" title="الحسابات والملف الشخصي / Accounts">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+</button>
+<button class="act-btn" id="act-settings" title="الإعدادات وإدارة المحرر / Settings">
+<svg fill="none" height="20" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewbox="0 0 24 24" width="20"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+</button>
+</div>
+</aside>
+<!-- محرر العمل والمستكشف -->
+<div id="work">
+<aside id="explorer"></aside>
+<main>
+<!-- VS Code Editor Title Bar Actions -->
+<div class="editor-header-bar">
+<div class="editor-tabs">
+<div class="editor-tab">
+<span class="editor-tab-dot"></span>
+<span id="tab-filename">main.py</span>
+</div>
+</div>
+<div class="editor-actions">
+<!-- Play / Run Code -->
+<button class="editor-act-btn run-btn" id="btn-run-code" title="تشغيل الكود (Run Code) ▶">
+<svg fill="currentColor" height="15" viewbox="0 0 24 24" width="15"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+</button>
+<!-- Undo -->
+<button class="editor-act-btn" id="btn-quick-undo" title="تراجع (Ctrl+Z) / Undo">
+<svg fill="none" height="15" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="15"><path d="M3 7v6h6"></path><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path></svg>
+</button>
+<!-- Redo -->
+<button class="editor-act-btn" id="btn-quick-redo" title="إعادة (Ctrl+Y) / Redo">
+<svg fill="none" height="15" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="15"><path d="M21 7v6h-6"></path><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"></path></svg>
+</button>
+<!-- Split Editor -->
+<button class="editor-act-btn" id="btn-split" title="تقسيم المحرر (Split Editor Right)">
+<svg fill="none" height="15" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="15"><rect height="18" rx="2" ry="2" width="18" x="3" y="3"></rect><line x1="12" x2="12" y1="3" y2="21"></line></svg>
+</button>
+<!-- More Actions (...) -->
+<button class="editor-act-btn" id="btn-more-actions" title="مزيد من الإجراءات / More Actions">
+<svg fill="currentColor" height="15" viewbox="0 0 24 24" width="15"><circle cx="12" cy="12" r="2"></circle><circle cx="19" cy="12" r="2"></circle><circle cx="5" cy="12" r="2"></circle></svg>
+</button>
+</div>
+</div>
+<!-- Monaco Container -->
+<div class="editor-container">
+<div id="editor"></div>
+</div>
+</main>
+</div>
+<!-- Space View -->
+<div id="space-view">
+<canvas id="space-stars"></canvas>
+<div id="space-stage"></div>
+<div class="space-hud">
+<select id="sp-folder" title="المجلد الحالي"></select>
+<button id="sp-editfolder" title="تغيير اسم المجلد">✎</button>
+<button id="sp-newfolder" title="مجلد جديد داخل المجلد الحالي"></button>
+<button id="sp-add"></button>
+<button id="sp-out">−</button><span id="sp-zoom">100%</span><button id="sp-in">+</button>
+<button id="sp-center"></button>
+<button aria-pressed="true" id="sp-frame"></button>
+<button id="sp-save" title="حفظ على القرص (Ctrl+S)">💾</button>
+    <button id="sp-exit"></button>
+</div>
+</div>
+</div>
+<!-- VS Code Style Enhanced Footer Status Bar -->
+<footer>
+<div class="status-left">
+<!-- Git Branch Indicator -->
+<div class="status-item" id="sb-git" title="الفرع الحالي في Git: main">
+<svg fill="none" height="13" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="13"><circle cx="18" cy="18" r="3"></circle><circle cx="6" cy="6" r="3"></circle><path d="M13 6h3a2 2 0 0 1 2 2v7"></path><line x1="6" x2="6" y1="9" y2="21"></line></svg>
+<span>main*</span>
+</div>
+<!-- Errors / Warnings -->
+<div class="status-item" id="sb-errors" title="لا توجد أخطاء برمجية">
+<svg fill="none" height="12" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="12"><circle cx="12" cy="12" r="10"></circle><line x1="12" x2="12" y1="8" y2="12"></line><line x1="12" x2="12.01" y1="16" y2="16"></line></svg>
+<span>0</span>
+<svg fill="none" height="12" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="12"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" x2="12" y1="9" y2="13"></line><line x1="12" x2="12.01" y1="17" y2="17"></line></svg>
+<span>0</span>
+</div>
+<!-- Status message / feedback -->
+<span id="status"></span>
+</div>
+<div class="status-right">
+<!-- Interactive Line & Col indicator -->
+<div class="status-item" id="sb-pos" title="السطر والعمود الحالي">Ln 1, Col 1</div>
+<div class="status-item" id="sb-spaces" title="المسافات البادئة">Spaces: 4</div>
+<div class="status-item" id="sb-encoding" title="ترميز الملف">UTF-8</div>
+<div class="status-item" id="sb-eol" title="نهاية السطر">LF</div>
+<div class="status-item" id="sb-lang" title="لغة المستند البرمجية">Python</div>
+<!-- Hint for convert shortcut -->
+<span id="hint" style="opacity:0.85; margin: 0 4px;"></span>
+<!-- Notification Bell -->
+<div class="status-item" id="sb-bell" title="الإشعارات (لا إشعارات جديدة)">
+<svg fill="none" height="13" stroke="currentColor" stroke-width="2" viewbox="0 0 24 24" width="13"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+</div>
+</div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min/vs/loader.js"></script>
+<script>
+  const BASE = "https://cdn.jsdelivr.net/npm/monaco-editor@0.45.0/min";
+  const isMac = /Mac|iPhone|iPad/.test(navigator.platform);
+  const KEY = isMac ? "⌘+Enter" : "Ctrl+Enter";
+  const THEMES_CONFIG = {
+    "light": {
+      nameAr: "فاتح قياسي (Aysar Light)",
+      nameEn: "Aysar Light (Default)",
+      monacoTheme: "vs",
+      dot: "#1f4fd8"
+    },
+    "dark-slate": {
+      nameAr: "داكن هادئ (Dark Slate)",
+      nameEn: "Dark Slate / Charcoal",
+      monacoTheme: "aysar-dark-slate",
+      dot: "#38bdf8",
+      monacoDef: {
+        base: "vs-dark",
+        inherit: true,
+        rules: [
+          { token: "comment", foreground: "6272a4", fontStyle: "italic" },
+          { token: "keyword", foreground: "38bdf8", fontStyle: "bold" },
+          { token: "string", foreground: "a5d6ff" },
+          { token: "number", foreground: "f6ad55" }
+        ],
+        colors: {
+          "editor.background": "#172228",
+          "editor.foreground": "#e2e8f0",
+          "editorLineNumber.foreground": "#486575",
+          "editorLineNumber.activeForeground": "#38bdf8",
+          "editorCursor.foreground": "#38bdf8",
+          "editor.lineHighlightBackground": "#1e2c34"
+        }
+      }
+    },
+    "cyberpunk": {
+      nameAr: "سايبربانك نيون (Cyberpunk)",
+      nameEn: "Cyberpunk / Matrix",
+      monacoTheme: "aysar-cyberpunk",
+      dot: "#00ff66",
+      monacoDef: {
+        base: "vs-dark",
+        inherit: true,
+        rules: [
+          { token: "comment", foreground: "008f39", fontStyle: "italic" },
+          { token: "keyword", foreground: "00ff66", fontStyle: "bold" },
+          { token: "string", foreground: "38ef7d" },
+          { token: "identifier", foreground: "bbf7d0", fontStyle: "normal" },
+          { token: "number", foreground: "5eead4" }
+        ],
+        colors: {
+          "editor.background": "#0a160f",
+          "editor.foreground": "#a7f3d0",
+          "editorLineNumber.foreground": "#155e34",
+          "editorLineNumber.activeForeground": "#00ff66",
+          "editorCursor.foreground": "#00ff66",
+          "editor.lineHighlightBackground": "#0f2318"
+        }
+      }
+    },
+    "warm-sepia": {
+      nameAr: "سيبيا دافئ (Warm Sepia)",
+      nameEn: "Warm Sepia / Coffee",
+      monacoTheme: "aysar-warm-sepia",
+      dot: "#a85832",
+      monacoDef: {
+        base: "vs",
+        inherit: true,
+        rules: [
+          { token: "comment", foreground: "846d62", fontStyle: "italic" },
+          { token: "keyword", foreground: "a85832", fontStyle: "bold" },
+          { token: "string", foreground: "2e7d32" },
+          { token: "number", foreground: "b45309" }
+        ],
+        colors: {
+          "editor.background": "#fcf9f2",
+          "editor.foreground": "#43302b",
+          "editorLineNumber.foreground": "#b5a396",
+          "editorLineNumber.activeForeground": "#a85832",
+          "editorCursor.foreground": "#a85832",
+          "editor.lineHighlightBackground": "#f5ece1"
+        }
+      }
+    },
+    "nord-navy": {
+      nameAr: "سماوي ليلي (Nord Navy)",
+      nameEn: "Nord / Deep Navy",
+      monacoTheme: "aysar-nord-navy",
+      dot: "#88c0d0",
+      monacoDef: {
+        base: "vs-dark",
+        inherit: true,
+        rules: [
+          { token: "comment", foreground: "616e88", fontStyle: "italic" },
+          { token: "keyword", foreground: "81a1c1", fontStyle: "bold" },
+          { token: "string", foreground: "a3be8c" },
+          { token: "number", foreground: "b48ead" },
+          { token: "type", foreground: "8fbcbb" }
+        ],
+        colors: {
+          "editor.background": "#293140",
+          "editor.foreground": "#eceff4",
+          "editorLineNumber.foreground": "#4c5970",
+          "editorLineNumber.activeForeground": "#88c0d0",
+          "editorCursor.foreground": "#88c0d0",
+          "editor.lineHighlightBackground": "#313b4c"
+        }
+      }
+    }
+  };
+  const FONTS_CONFIG = [
+    { value: "'IBM Plex Sans Arabic', system-ui, sans-serif", ar: "IBM Plex Sans (متزن)", en: "IBM Plex Sans" },
+    { value: "'Cairo', system-ui, sans-serif", ar: "Cairo (عصري وحيوي)", en: "Cairo" },
+    { value: "'Amiri', serif", ar: "Amiri (أصيل وتقليدي)", en: "Amiri" },
+    { value: "'Tajawal', sans-serif", ar: "Tajawal (هندسي مريح)", en: "Tajawal" },
+    { value: "'Almarai', sans-serif", ar: "Almarai (سلس للمقروئية)", en: "Almarai" },
+    { value: "'Marhey', sans-serif", ar: "Marhey (مرح وعفوي)", en: "Marhey" },
+    { value: "'Changa', sans-serif", ar: "Changa (صلب وواضح)", en: "Changa" }
+  ];
+  const TEXT = {
+    ar: {
+      convert: "حوّل السطر",
+      toggle: "English",
+      hint: `اكتب سطراً بلغتك ثم اضغط <kbd>${KEY}</kbd>`,
+      ready: "جاهز. اكتب سطراً ثم اضغط زر التحويل.",
+      empty: "السطر فارغ. اكتب شيئاً أولاً.",
+      busy: "جاري التحويل...",
+      fail: (m) => `تعذّر التحويل: ${m}`,
+      changed: "تغيّر السطر أثناء الانتظار، فلم أستبدله.",
+      needServer: "افتح الصفحة من http://localhost:3000 بعد تشغيل السيرفر.",
+      isCode: "هذا السطر كود أصلاً، ما في شي يتحول.",
+      soundOn: "الأصوات: تشغيل",
+      soundOff: "الأصوات: إيقاف",
+      musicOn: "الموسيقى: خيال علمي 🛸 (تعمل)",
+      musicOff: "الموسيقى: خيال علمي 🛸",
+      boldText: "عريض",
+      starter: { python: "# اكتب هنا\n", javascript: "// اكتب هنا\n", dart: "// اكتب هنا\n" },
+      done: (n) => `تم تحويل السطر ${n}. اضغط ${isMac ? "⌘+Z" : "Ctrl+Z"} للتراجع.`
+    },
+    en: {
+      convert: "Convert line",
+      toggle: "عربي",
+      hint: `Type a line in your own words, then press <kbd>${KEY}</kbd>`,
+      ready: "Ready. Type a line, then press the convert button.",
+      empty: "This line is empty. Type something first.",
+      busy: "Converting...",
+      fail: (m) => `Conversion failed: ${m}`,
+      changed: "The line changed while waiting, so it was not replaced.",
+      needServer: "Open the page at http://localhost:3000 after starting the server.",
+      isCode: "This line is already code, nothing to convert.",
+      soundOn: "Sounds: on",
+      soundOff: "Sounds: off",
+      musicOn: "Sci-Fi Ambient 🛸 (Playing)",
+      musicOff: "Sci-Fi Music 🛸",
+      boldText: "Bold",
+      starter: { python: "# write here\n", javascript: "// write here\n", dart: "// write here\n" },
+      done: (n) => `Line ${n} converted. Press ${isMac ? "⌘+Z" : "Ctrl+Z"} to undo.`
+    }
+  };
+  const COMMENT = { python: "#", javascript: "//", dart: "//" };
+  let ui = "ar";
+  let currentTheme = "light";
+  let currentFont = "'IBM Plex Sans Arabic', system-ui, sans-serif";
+  let isFontBold = false;
+  try {
+    const savedTheme = localStorage.getItem("aysar-theme");
+    if (savedTheme && THEMES_CONFIG[savedTheme]) currentTheme = savedTheme;
+    else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+      currentTheme = "dark-slate";
+    }
+    const savedFont = localStorage.getItem("aysar-font");
+    if (savedFont) currentFont = savedFont;
+    isFontBold = localStorage.getItem("aysar-font-bold") === "1";
+  } catch {}
+  let editor;
+  let monacoReady = false;
+  const $ = (id) => document.getElementById(id);
+  function setStatus(msg, done) {
+    const s = $("status");
+    if (s) {
+      s.textContent = msg;
+      s.className = done ? "done" : "";
+    }
+  }
+  function updateCursorPos(ln, col) {
+    const p = $("sb-pos");
+    if (p) p.textContent = `Ln ${ln}, Col ${col}`;
+  }
+  function applyFontSettings() {
+    document.documentElement.style.setProperty("--text-font-family", currentFont);
+    document.documentElement.style.setProperty("--comment-weight", isFontBold ? "700" : "400");
+    
+    const fontSel = $("text-font");
+    if (fontSel && fontSel.value !== currentFont) fontSel.value = currentFont;
+    
+    const boldBtn = $("font-bold");
+    if (boldBtn) {
+      boldBtn.setAttribute("aria-pressed", String(isFontBold));
+    }
+    try {
+      localStorage.setItem("aysar-font", currentFont);
+      localStorage.setItem("aysar-font-bold", isFontBold ? "1" : "0");
+    } catch {}
+    if (monacoReady && editor) {
+      editor.layout();
+    }
+  }
+  function applyTheme(themeKey) {
+    if (!THEMES_CONFIG[themeKey]) themeKey = "light";
+    currentTheme = themeKey;
+    if (themeKey === "light") {
+      document.documentElement.removeAttribute("data-theme");
+    } else {
+      document.documentElement.setAttribute("data-theme", themeKey);
+    }
+    const cfg = THEMES_CONFIG[themeKey];
+    const dot = $("theme-dot");
+    if (dot) dot.style.backgroundColor = cfg.dot;
+    const sel = $("theme");
+    if (sel && sel.value !== themeKey) sel.value = themeKey;
+    try { localStorage.setItem("aysar-theme", themeKey); } catch {}
+    if (monacoReady && window.monaco) {
+      monaco.editor.setTheme(cfg.monacoTheme);
+    }
+  }
+  function applyUiLanguage() {
+    const t = TEXT[ui];
+    document.documentElement.lang = ui;
+    document.documentElement.dir = ui === "ar" ? "rtl" : "ltr";
+    $("t-title").textContent = ui === "ar" ? "عيصر" : "Aysar";
+    $("convert").textContent = t.convert;
+    $("ui-lang").textContent = t.toggle;
+    $("hint").innerHTML = t.hint;
+    $("bold-label").textContent = t.boldText;
+    const themeSelect = $("theme");
+    if (themeSelect) {
+      Array.from(themeSelect.options).forEach((opt) => {
+        const conf = THEMES_CONFIG[opt.value];
+        if (conf) opt.textContent = ui === "ar" ? conf.nameAr : conf.nameEn;
+      });
+    }
+    const fontSelect = $("text-font");
+    if (fontSelect) {
+      Array.from(fontSelect.options).forEach((opt) => {
+        const f = FONTS_CONFIG.find(c => c.value === opt.value);
+        if (f) opt.textContent = ui === "ar" ? f.ar : f.en;
+      });
+    }
+    updateSoundBtn();
+    updateMusicBtn();
+    setStatus(t.ready, false);
+  }
+  const KEYWORDS = {
+    python: "assert async await break class continue def del elif else except finally for from global if import lambda nonlocal pass raise return try while with yield print int str float bool",
+    javascript: "async await break case catch class const continue default do else export extends finally for function if import let return switch throw try var while console",
+    dart: "abstract assert async await break case catch class const continue do else enum extends final finally for if import return switch throw try var void while int double num String bool List Map Set dynamic late required print"
+  }; 
+  for (const k in KEYWORDS) KEYWORDS[k] = new Set(KEYWORDS[k].split(" "));
+  function looksLikeCode(text, lang) {
+    const stripped = text
+      .replace(/(["'`])(?:\\.|(?!\1).)*\1/g, "")
+      .replace(lang === "python" ? /#.*$/ : /\/\/.*$/, "")
+      .trim();
+    if (/[\u0600-\u06FF]/.test(stripped)) return false;
+    if (stripped === "") return true;
+    if (/[(){}\[\];=<>]/.test(stripped)) return true;
+    const words = stripped.match(/[A-Za-z_][A-Za-z0-9_]*/g) || [];
+    if (words.length <= 1) return true;
+    if (KEYWORDS[lang].has(words[0])) {
+      return words.length <= 2 || /[:{]$/.test(stripped);
+    }
+    return false;
+  }
+  const Sound = {
+    enabled: false,
+    ctx: null,
+    timer: null,
+    thinkingSrc: null,
+    lastKey: 0,
+    buffers: {},
+    getCtx() {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      if (!this.ctx) { this.ctx = new AC(); this.loadFiles(); }
+      if (this.ctx.state === "suspended") this.ctx.resume();
+      return this.ctx;
+    },
+    async loadFiles() {
+      if (location.protocol === "file:") return;
+      try {
+        const list = await (await fetch("/sounds/index.json")).json();
+        await Promise.all(Object.entries(list).map(async ([role, file]) => {
+          try {
+            const r = await fetch("/sounds/" + encodeURIComponent(file));
+            this.buffers[role] = await this.ctx.decodeAudioData(await r.arrayBuffer());
+          } catch {}
+        }));
+      } catch {}
+    },
+    play(role, fallback, rate = 1, vol = 1, loop = false) {
+      if (!this.enabled) return null;
+      const buf = this.buffers[role];
+      if (!buf) { if (fallback) fallback(); return null; }
+      const c = this.getCtx();
+      if (!c) return null;
+      const src = c.createBufferSource();
+      const g = c.createGain();
+      src.buffer = buf;
+      src.playbackRate.value = rate;
+      src.loop = loop;
+      g.gain.value = vol;
+      src.connect(g); g.connect(c.destination);
+      src.start();
+      return src;
+    },
+    tone({ freq, to, dur = 0.08, type = "sine", vol = 0.05, delay = 0 }) {
+      if (!this.enabled) return;
+      const c = this.getCtx();
+      if (!c) return;
+      const t = c.currentTime + delay;
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t); o.stop(t + dur + 0.05);
+    },
+    click()   { this.play("click",   () => this.tone({ freq: 1400, to: 900, dur: 0.05, type: "square", vol: 0.025 })); },
+    deny()    { this.play("deny",    () => this.tone({ freq: 220, dur: 0.12, type: "square", vol: 0.04 })); },
+    error()   { this.play("error",   () => this.tone({ freq: 260, to: 110, dur: 0.35, type: "sawtooth", vol: 0.05 })); },
+    success() {
+      this.play("success", () => {
+        [660, 990, 1320].forEach((f, i) => this.tone({ freq: f, dur: 0.14, vol: 0.06, delay: i * 0.09 }));
+      });
+    },
+    start() {
+      this.play("start", () => {
+        this.tone({ freq: 500, to: 1000, dur: 0.12, vol: 0.06 });
+        this.tone({ freq: 1000, to: 1500, dur: 0.12, vol: 0.06, delay: 0.12 });
+      });
+      this.stopThinking();
+      if (this.buffers.thinking) {
+        this.thinkingSrc = this.play("thinking", null, 1, 1, true);
+      } else if (this.enabled) {
+        const notes = [700, 900, 1100, 1500, 1900];
+        this.timer = setInterval(() => {
+          this.tone({ freq: notes[Math.floor(Math.random() * notes.length)], dur: 0.06, type: "triangle", vol: 0.02 });
+        }, 280);
+      }
+    },
+    stopThinking() {
+      if (this.timer) { clearInterval(this.timer); this.timer = null; }
+      if (this.thinkingSrc) { try { this.thinkingSrc.stop(); } catch {} this.thinkingSrc = null; }
+    },
+    tick(vol = 0.02, dur = 0.012) {
+      if (!this.enabled) return;
+      const c = this.getCtx();
+      if (!c) return;
+      const n = Math.floor(c.sampleRate * dur);
+      const buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+      const src = c.createBufferSource(), hp = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = buf; hp.type = "highpass"; hp.frequency.value = 2500; g.gain.value = vol;
+      src.connect(hp); hp.connect(g); g.connect(c.destination); src.start();
+    },
+    scifiKey(role) {
+      const scale = [1319, 1568, 1760, 1976, 2349, 2637];
+      const pick = () => scale[Math.floor(Math.random() * scale.length)];
+      if (role === "enter") {
+        this.tick(0.03, 0.02);
+        this.tone({ freq: 700, to: 1400, dur: 0.1, type: "sine", vol: 0.05 });
+        this.tone({ freq: 1400, to: 2100, dur: 0.1, type: "sine", vol: 0.04, delay: 0.09 });
+      } else if (role === "backspace") {
+        this.tick(0.015, 0.01);
+        this.tone({ freq: 1500, to: 600, dur: 0.07, type: "triangle", vol: 0.04 });
+      } else if (role === "space") {
+        this.tick(0.025, 0.015);
+        this.tone({ freq: 520, to: 420, dur: 0.06, type: "sine", vol: 0.04 });
+      } else {
+        this.tick(0.02, 0.01);
+        this.tone({ freq: pick(), dur: 0.045, type: "sine", vol: 0.035 });
+        if (Math.random() < 0.2) this.tone({ freq: pick() * 1.5, dur: 0.03, type: "sine", vol: 0.018, delay: 0.035 });
+      }
+    },
+    keystroke(key) {
+      if (!this.enabled) return;
+      const now = performance.now();
+      if (now - this.lastKey < 20) return;
+      this.lastKey = now;
+      const j = 1 + (Math.random() - 0.5) * 0.12;
+      let role = null;
+      if (key === "Enter") role = "enter";
+      else if (key === "Backspace" || key === "Delete") role = "backspace";
+      else if (key === " ") role = "space";
+      else if (key.length === 1 || key === "Tab") role = "key";
+      if (!role) return;
+      const useRole = this.buffers[role] ? role : (this.buffers.key ? "key" : null);
+      if (useRole) this.play(useRole, null, j);
+      else this.scifiKey(role);
+    }
+  };
+  try { Sound.enabled = localStorage.getItem("aysar-sound") === "1"; } catch {}
+  const AmbientMusic = {
+    isPlaying: false,
+    ctx: null,
+    masterGain: null,
+    nodes: [],
+    arpTimer: null,
+    initCtx() {
+      if (!this.ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        this.ctx = new AC();
+      }
+      if (this.ctx.state === "suspended") this.ctx.resume();
+      return this.ctx;
+    },
+    start() {
+      const c = this.initCtx();
+      if (!c) return;
+      this.masterGain = c.createGain();
+      this.masterGain.gain.setValueAtTime(0.001, c.currentTime);
+      this.masterGain.gain.exponentialRampToValueAtTime(0.18, c.currentTime + 3.0);
+      const mainFilter = c.createBiquadFilter();
+      mainFilter.type = "lowpass";
+      mainFilter.frequency.setValueAtTime(620, c.currentTime);
+      mainFilter.Q.setValueAtTime(3.2, c.currentTime);
+      const lfo = c.createOscillator();
+      lfo.type = "sine";
+      lfo.frequency.setValueAtTime(0.08, c.currentTime);
+      const lfoGain = c.createGain();
+      lfoGain.gain.setValueAtTime(280, c.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(mainFilter.frequency);
+      lfo.start();
+      this.nodes.push(lfo, lfoGain);
+      const baseFreqs = [73.41, 110.0, 146.83, 220.0];
+      baseFreqs.forEach((freq, idx) => {
+        const osc = c.createOscillator();
+        osc.type = idx % 2 === 0 ? "sine" : "triangle";
+        const detune = (idx - 1.5) * 6;
+        osc.frequency.setValueAtTime(freq, c.currentTime);
+        osc.detune.setValueAtTime(detune, c.currentTime);
+        const panner = c.createStereoPanner ? c.createStereoPanner() : null;
+        if (panner) panner.pan.setValueAtTime((idx % 2 === 0 ? -0.4 : 0.4), c.currentTime);
+        const g = c.createGain();
+        g.gain.setValueAtTime(0.045 / (idx + 1), c.currentTime);
+        osc.connect(g);
+        if (panner) { g.connect(panner); panner.connect(mainFilter); this.nodes.push(panner); }
+        else { g.connect(mainFilter); }
+        osc.start();
+        this.nodes.push(osc, g);
+      });
+      const shimmerOsc = c.createOscillator();
+      shimmerOsc.type = "sine";
+      shimmerOsc.frequency.setValueAtTime(440, c.currentTime);
+      const shimmerGain = c.createGain();
+      shimmerGain.gain.setValueAtTime(0.008, c.currentTime);
+      shimmerOsc.connect(shimmerGain);
+      shimmerGain.connect(mainFilter);
+      shimmerOsc.start();
+      this.nodes.push(shimmerOsc, shimmerGain);
+      mainFilter.connect(this.masterGain);
+      this.masterGain.connect(c.destination);
+      this.nodes.push(mainFilter);
+      const stardustScale = [293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 880.00];
+      const playStardust = () => {
+        if (!this.isPlaying || !this.ctx) return;
+        const now = this.ctx.currentTime;
+        const note = stardustScale[Math.floor(Math.random() * stardustScale.length)];
+        const bell = this.ctx.createOscillator();
+        const bellGain = this.ctx.createGain();
+        const bellPanner = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
+        bell.type = "sine";
+        bell.frequency.setValueAtTime(note, now);
+        bellGain.gain.setValueAtTime(0.0001, now);
+        bellGain.gain.exponentialRampToValueAtTime(0.015, now + 0.12);
+        bellGain.gain.exponentialRampToValueAtTime(0.00001, now + 2.8);
+        if (bellPanner) {
+          bellPanner.pan.setValueAtTime((Math.random() * 1.6) - 0.8, now);
+          bell.connect(bellGain);
+          bellGain.connect(bellPanner);
+          bellPanner.connect(this.masterGain);
+        } else {
+          bell.connect(bellGain);
+          bellGain.connect(this.masterGain);
+        }
+        bell.start(now);
+        bell.stop(now + 3.0);
+        const nextDelay = 1800 + Math.random() * 3200;
+        this.arpTimer = setTimeout(playStardust, nextDelay);
+      };
+      this.arpTimer = setTimeout(playStardust, 1500);
+      this.isPlaying = true;
+    },
+    stop() {
+      if (this.arpTimer) {
+        clearTimeout(this.arpTimer);
+        this.arpTimer = null;
+      }
+      if (this.masterGain && this.ctx) {
+        try {
+          const now = this.ctx.currentTime;
+          this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+          this.masterGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+          setTimeout(() => {
+            this.nodes.forEach(n => {
+              try { if (n.stop) n.stop(); } catch {}
+              try { if (n.disconnect) n.disconnect(); } catch {}
+            });
+            this.nodes = [];
+          }, 1300);
+        } catch {}
+      } else {
+        this.nodes = [];
+      }
+      this.isPlaying = false;
+    },
+    toggle() {
+      if (this.isPlaying) {
+        this.stop();
+      } else {
+        this.start();
+      }
+      return this.isPlaying;
+    }
+  };
+  try {
+    const savedMusic = localStorage.getItem("aysar-ambient-music") === "1";
+    if (savedMusic) {
+      const unlockAudio = () => {
+        if (!AmbientMusic.isPlaying) {
+          AmbientMusic.start();
+          updateMusicBtn();
+        }
+        window.removeEventListener("pointerdown", unlockAudio);
+        window.removeEventListener("keydown", unlockAudio);
+      };
+      window.addEventListener("pointerdown", unlockAudio, { once: true });
+      window.addEventListener("keydown", unlockAudio, { once: true });
+    }
+  } catch {}
+  function updateSoundBtn() {
+    const b = $("sound");
+    b.textContent = Sound.enabled ? TEXT[ui].soundOn : TEXT[ui].soundOff;
+    b.setAttribute("aria-pressed", String(Sound.enabled));
+  }
+  function updateMusicBtn() {
+    const b = $("music");
+    const lbl = $("music-label");
+    b.setAttribute("aria-pressed", String(AmbientMusic.isPlaying));
+    if (lbl) {
+      lbl.textContent = AmbientMusic.isPlaying ? TEXT[ui].musicOn : TEXT[ui].musicOff;
+    }
+  }
+  let busy = false;
+  async function askAI(payload) {
+    if (location.protocol === "file:") throw new Error(TEXT[ui].needServer);
+    const res = await fetch("/convert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || res.status);
+    return data.code;
+  }
+  async function convertCurrentLine() {
+    const ed = window.__activeEditor ? window.__activeEditor() : editor;
+    if (!ed || busy) return;
+    const model = ed.getModel();
+    const lineNo = ed.getPosition().lineNumber;
+    const raw = model.getLineContent(lineNo);
+    const text = raw.trim();
+    if (!text) { Sound.deny(); setStatus(TEXT[ui].empty, false); return; }
+    const indent = raw.match(/^\s*/)[0];
+    const lang = window.__activeLang ? window.__activeLang() : $("lang").value;
+    if (window.__aiLangs && !window.__aiLangs.includes(lang)) { Sound.deny(); setStatus(ui === "ar" ? "التحويل بالذكاء الاصطناعي متاح حالياً لبايثون وجافاسكربت ودارت فقط." : "AI conversion is currently available for Python, JavaScript and Dart only.", false); return; }
+    if (looksLikeCode(text, lang)) { Sound.deny(); setStatus(TEXT[ui].isCode, false); return; }
+    const all = model.getLinesContent();
+    const before = all.slice(Math.max(0, lineNo - 31), lineNo - 1).join("\n");
+    const after = all.slice(lineNo, lineNo + 30).join("\n");
+    const fog = ed.createDecorationsCollection([{
+      range: new monaco.Range(lineNo, 1, lineNo, model.getLineMaxColumn(lineNo)),
+      options: { isWholeLine: true, className: "aysar-fog-line", inlineClassName: "aysar-fog-text" }
+    }]);
+    Sound.start();
+    busy = true;
+    $("convert").disabled = true;
+    setStatus(TEXT[ui].busy, false);
+    let code;
+    try {
+      code = await askAI({ text, language: lang, before, after });
+    } catch (err) {
+      Sound.error();
+      setStatus(TEXT[ui].fail(err.message), false);
+      return;
+    } finally {
+      fog.clear();
+      Sound.stopThinking();
+      busy = false;
+      $("convert").disabled = false;
+    }
+    if (model.getLineContent(lineNo) !== raw) { setStatus(TEXT[ui].changed, false); return; }
+    if (code.trim() === text) { Sound.deny(); setStatus(TEXT[ui].isCode, false); return; }
+    const range = new monaco.Range(lineNo, 1, lineNo, model.getLineMaxColumn(lineNo));
+    const out = code.split("\n").map((l) => (l ? indent + l : l)).join("\n");
+    ed.pushUndoStop();
+    ed.executeEdits("aysar-convert", [{ range, text: out, forceMoveMarkers: true }]);
+    const endLine = lineNo + out.split("\n").length - 1;
+    const reveal = ed.createDecorationsCollection([{
+      range: new monaco.Range(lineNo, 1, endLine, model.getLineMaxColumn(endLine)),
+      options: { isWholeLine: true, className: "aysar-reveal-line", inlineClassName: "aysar-reveal-text" }
+    }]);
+    setTimeout(() => reveal.clear(), 1300);
+    ed.pushUndoStop();
+    ed.focus();
+    setStatus(TEXT[ui].done(lineNo), true);
+    Sound.success();
+  }
+  require.config({ paths: { vs: BASE + "/vs" } });
+  window.MonacoEnvironment = {
+    getWorkerUrl: function () {
+      const code = `self.MonacoEnvironment={baseUrl:'${BASE}/'};importScripts('${BASE}/vs/base/worker/workerMain.js');`;
+      return "data:text/javascript;charset=utf-8," + encodeURIComponent(code);
+    }
+  };
+  require(["vs/editor/editor.main"], function () {
+    Object.entries(THEMES_CONFIG).forEach(([key, cfg]) => {
+      if (cfg.monacoDef) {
+        monaco.editor.defineTheme(cfg.monacoTheme, cfg.monacoDef);
+      }
+    });
+    const activeTheme = THEMES_CONFIG[currentTheme] || THEMES_CONFIG["light"];
+    editor = monaco.editor.create($("editor"), {
+      value: TEXT[ui].starter.python,
+      language: "python",
+      theme: activeTheme.monacoTheme,
+      automaticLayout: true,
+      fontFamily: '"JetBrains Mono", ui-monospace, Consolas, monospace',
+      fontSize: 15,
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      padding: { top: 12 }
+    });
+    monacoReady = true;
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, convertCurrentLine);
+    editor.onKeyDown((e) => {
+      const ev = e.browserEvent;
+      if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+      Sound.keystroke(ev.key);
+    });
+    editor.onDidChangeCursorPosition((e) => {
+      updateCursorPos(e.position.lineNumber, e.position.column);
+    });
+    editor.setPosition({ lineNumber: 2, column: 1 });
+    updateCursorPos(2, 1);
+    editor.focus();
+  });
+  $("convert").addEventListener("click", convertCurrentLine);
+  $("sound").addEventListener("click", () => {
+    if (Sound.enabled) { Sound.click(); Sound.enabled = false; Sound.stopThinking(); }
+    else { Sound.enabled = true; Sound.success(); }
+    try { localStorage.setItem("aysar-sound", Sound.enabled ? "1" : "0"); } catch {}
+    updateSoundBtn();
+  });
+  $("music").addEventListener("click", () => {
+    Sound.click();
+    const playing = AmbientMusic.toggle();
+    try { localStorage.setItem("aysar-ambient-music", playing ? "1" : "0"); } catch {}
+    updateMusicBtn();
+  });
+  $("text-font").addEventListener("change", (e) => {
+    Sound.click();
+    currentFont = e.target.value;
+    applyFontSettings();
+  });
+  $("font-bold").addEventListener("click", () => {
+    Sound.click();
+    isFontBold = !isFontBold;
+    applyFontSettings();
+  });
+  $("theme").addEventListener("change", (e) => {
+    Sound.click();
+    applyTheme(e.target.value);
+  });
+  document.querySelectorAll("button, select").forEach((el) => {
+    if (el.id === "convert" || el.id === "sound" || el.id === "music" || el.id === "theme" || el.id === "font-bold" || el.id === "text-font") return;
+    el.addEventListener(el.tagName === "SELECT" ? "change" : "click", () => Sound.click());
+  });
+  $("lang").addEventListener("change", (e) => {
+    const val = e.target.value;
+    if (editor) monaco.editor.setModelLanguage(editor.getModel(), val);
+    const sbLang = $("sb-lang");
+    if (sbLang) sbLang.textContent = val === "python" ? "Python" : (val === "javascript" ? "JavaScript" : "Dart");
+  });
+  $("ui-lang").addEventListener("click", () => {
+    ui = ui === "ar" ? "en" : "ar";
+    applyUiLanguage();
+  });
+
+  /* VS Code Activity Bar & Title Bar Interactivity */
+  $("act-explorer").addEventListener("click", function() {
+    Sound.click();
+    const ex = $("explorer");
+    ex.classList.toggle("collapsed");
+    this.classList.toggle("active", !ex.classList.contains("collapsed"));
+    if (editor) setTimeout(() => editor.layout(), 250);
+  });
+  ["act-search", "act-git", "act-debug", "act-extensions"].forEach(id => {
+    $(id).addEventListener("click", function() {
+      Sound.click();
+      document.querySelectorAll(".act-btn").forEach(b => { if (b.id !== "act-account" && b.id !== "act-settings") b.classList.remove("active"); });
+      this.classList.add("active");
+      const ex = $("explorer");
+      if (id === "act-explorer") {
+        ex.classList.remove("collapsed");
+      }
+      setStatus((ui === "ar" ? "تم تحديد: " : "Activated: ") + this.getAttribute("title").split("/")[0].trim(), false);
+    });
+  });
+  $("act-settings").addEventListener("click", () => {
+    Sound.click();
+    setStatus(ui === "ar" ? "إعدادات عيصر: اختر السمة أو الخط من الشريط العلوي ⚙️" : "Aysar Settings: Customize theme & font from top bar ⚙️", false);
+  });
+  $("act-account").addEventListener("click", () => {
+    Sound.click();
+    setStatus(ui === "ar" ? "حساب المستخدم: متصل كـ عيصر (ضيف مبرمج)" : "Account: Connected as Aysar Guest Developer", false);
+  });
+
+  /* Title bar quick actions */
+  $("btn-run-code").addEventListener("click", () => {
+    Sound.success();
+    setStatus(ui === "ar" ? "تشغيل الكود الحالي... (بيئة التشغيل جاهزة) ▶" : "Executing code snippet... (Runtime ready) ▶", true);
+  });
+  $("btn-quick-undo").addEventListener("click", () => {
+    Sound.click();
+    const ed = window.__activeEditor ? window.__activeEditor() : editor;
+    if (ed) { ed.trigger("keyboard", "undo", null); ed.focus(); }
+  });
+  $("btn-quick-redo").addEventListener("click", () => {
+    Sound.click();
+    const ed = window.__activeEditor ? window.__activeEditor() : editor;
+    if (ed) { ed.trigger("keyboard", "redo", null); ed.focus(); }
+  });
+  $("btn-split").addEventListener("click", () => {
+    Sound.click();
+    setStatus(ui === "ar" ? "نصيحة: استخدم وضع 'الفضاء 🌌' لفتح وتقسيم عدد لا نهائي من الشاشات بحرية!" : "Tip: Use 'Space 🌌' mode to open and position multiple files freely!", false);
+  });
+  $("btn-more-actions").addEventListener("click", () => {
+    Sound.click();
+    setStatus(ui === "ar" ? "اختصارات إضافية: Ctrl+Enter للتحويل، Ctrl+Z للتراجع." : "Shortcuts: Ctrl+Enter to convert, Ctrl+Z to undo.", false);
+  });
+  $("sb-bell").addEventListener("click", () => {
+    Sound.click();
+    setStatus(ui === "ar" ? "لا توجد إشعارات جديدة. كل الأنظمة تعمل بسلاسة." : "No new notifications. All systems operational.", false);
+  });
+
+  applyTheme(currentTheme);
+  applyFontSettings();
+  applyUiLanguage();
+
+  /* ===== الفضاء + الملفات والمجلدات ===== */
+  (function () {
+    const L = (ar, en) => (ui === "ar" ? ar : en);
+    const LIGHT = ["light", "warm-sepia"];
+    // أنواع الملفات: re = شكل تعليق الوصف بأول سطر (null = النوع ما بيدعم تعليقات)، make = بناء سطر الوصف، ai = متاح فيه التحويل بالذكاء الاصطناعي
+    const HASH = { re: /^#\s*(.*)$/, make: (t) => "# " + t };
+    const SLASH = { re: /^\/\/\s*(.*)$/, make: (t) => "// " + t };
+    const HTMLC = { re: /^<!--\s*(.*?)\s*-->$/, make: (t) => "<!-- " + t + " -->" };
+    const LG = {
+      python: Object.assign({ label: "Python", ext: "py", ai: true }, HASH),
+      javascript: Object.assign({ label: "JavaScript", ext: "js", ai: true }, SLASH),
+      dart: Object.assign({ label: "Dart", ext: "dart", ai: true }, SLASH),
+      typescript: Object.assign({ label: "TypeScript", ext: "ts", ai: false }, SLASH),
+      css: { label: "CSS", ext: "css", ai: false, re: /^\/\*\s*(.*?)\s*\*\/$/, make: (t) => "/* " + t + " */" },
+      html: Object.assign({ label: "HTML", ext: "html", ai: false }, HTMLC),
+      markdown: Object.assign({ label: "Markdown", ext: "md", ai: false }, HTMLC),
+      yaml: Object.assign({ label: "YAML", ext: "yaml", ai: false }, HASH),
+      json: { label: "JSON", ext: "json", ai: false, re: null, make: null },
+      plaintext: { label: "Text", ext: "txt", ai: false, re: null, make: null }
+    };
+    const CM = {}, EXT = {};
+    Object.keys(LG).forEach((k) => { CM[k] = LG[k].re || /(?!)/; EXT[k] = LG[k].ext; });
+    const store = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; };
+    const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+    const spView = $("space-view"), stage = $("space-stage");
+
+    let inSpace = false, frameless = store("aysar-frameless") !== "0", ruleOn = store("aysar-rule") !== "0";
+    let cards = [], active = null, zTop = 100, drag = null, pan = null, exPending = false, exDrag = null;
+    let uid = 0;
+    let folders = ["مشروعي"], curFolder = "مشروعي";
+    // المجلدات بشكل شجرة: المسار بيتخزن كنص مثل  مشروعي/صوت/مؤثرات  (مثل VS Code)
+    const fpos = {}, frames = {};          // fpos: مكان المجلدات الفاضية بالفضاء
+    const PAD = 24, TOP = 44, EW = 380, EH = 200;
+    const changeCbs = [];
+    const inTree = (p, root) => p === root || p.startsWith(root + "/");
+    const say = (m, good) => { if (typeof setStatus === "function") setStatus(m, good); };
+    const collapsed = new Set();
+    try { JSON.parse(store("aysar-collapsed") || "[]").forEach((p) => collapsed.add(p)); } catch (e) {}
+    const saveCollapsed = () => store("aysar-collapsed", JSON.stringify(Array.from(collapsed)));
+    const cmp = (a, b) => a.localeCompare(b, undefined, { numeric: true });
+    const baseName = (f) => f.slice(f.lastIndexOf("/") + 1);
+    const parentOf = (f) => (f.lastIndexOf("/") < 0 ? "" : f.slice(0, f.lastIndexOf("/")));
+    const childFolders = (parent) => folders.filter((f) => parentOf(f) === parent).sort(cmp);
+    const ensurePath = (p) => { let acc = ""; p.split("/").forEach((seg) => { acc = acc ? acc + "/" + seg : seg; if (!folders.includes(acc)) folders.push(acc); }); };
+    let view = { x: 60, y: 40, z: 1 };
+    try { Object.assign(view, JSON.parse(store("aysar-space-view") || "{}")); } catch (e) {}
+
+    // الوصف = تعليق أول سطر بالملف (اختياري)
+    const descOf = (c) => { const m = (c.code.split("\n")[0] || "").trim().match(CM[c.lang]); return m ? m[1].trim() : ""; };
+    const starterFor = (lang) => (ruleOn && LG[lang] && LG[lang].make ? LG[lang].make(L("اكتب وصف الملف هنا", "Describe this file here")) + "\n" : "");
+    const uniqueName = (folder, lang) => {
+      let n = 1, name;
+      do { name = "file" + n + "." + EXT[lang]; n++; } while (cards.some((x) => x.folder === folder && x.name === name));
+      return name;
+    };
+
+    function sync() {
+      document.body.classList.toggle("in-space", inSpace);
+      document.body.classList.toggle("frameless", frameless);
+      const actSp = $("act-space");
+      if (actSp) { actSp.classList.toggle("active", inSpace); actSp.title = inSpace ? L("الرجوع للمحرر التقليدي", "Back to the classic editor") : L("الفضاء 🌌", "Space 🌌"); }
+      if ($("btn-space-txt")) $("btn-space-txt").textContent = inSpace ? L("المحرر التقليدي", "Classic editor") : L("الفضاء", "Space");
+      $("btn-rule-txt").textContent = L("الوصف", "Description");
+      $("btn-rule").setAttribute("aria-pressed", String(ruleOn));
+      $("sp-add").textContent = L("+ ملف جديد", "+ New file");
+      $("sp-newfolder").textContent = L("+ مجلد", "+ Folder");
+      $("sp-center").textContent = L("توسيط", "Center");
+      $("sp-frame").textContent = L("بدون إطار", "Frameless");
+      $("sp-exit").textContent = L("المحرر التقليدي", "Classic editor");
+      $("sp-frame").setAttribute("aria-pressed", String(frameless));
+      cards.forEach((c) => {
+        c.el.querySelector(".sp-conv").textContent = L("حوّل", "Convert");
+        c.el.querySelector(".sp-edit").title = L("تعديل الاسم والوصف", "Edit name and description");
+        c.el.querySelector(".sp-del").title = L("حذف الملف", "Delete file");
+      });
+      $("hint").innerHTML = inSpace
+        ? L("اسحب الفراغ للتحريك · عجلة الماوس للتكبير · نقر مزدوج لملف جديد · نقر مزدوج على الاسم لتغييره · <kbd>" + KEY + "</kbd> للتحويل",
+            "Drag to pan · wheel to zoom · double-click for a new file · double-click a name to rename · <kbd>" + KEY + "</kbd> to convert")
+        : TEXT[ui].hint;
+      if (monacoReady && window.monaco) {
+        const dark = frameless && inSpace && LIGHT.includes(currentTheme);
+        monaco.editor.setTheme(dark ? "aysar-dark-slate" : THEMES_CONFIG[currentTheme].monacoTheme);
+      }
+    }
+
+    const applyView = () => {
+      stage.style.transform = "translate(" + view.x + "px," + view.y + "px) scale(" + view.z + ")";
+      $("sp-zoom").textContent = Math.round(view.z * 100) + "%";
+      store("aysar-space-view", JSON.stringify(view));
+    };
+
+    const saveAll = () => {
+      changeCbs.forEach((f) => { try { f(); } catch (e) {} });
+      store("aysar-files", JSON.stringify({
+        folders: folders, fpos: fpos, cur: curFolder, active: cards.indexOf(active),
+        files: cards.map((c) => ({ name: c.name, folder: c.folder, lang: c.lang, code: c.code, x: c.x, y: c.y, w: c.w, h: c.h }))
+      }));
+    };
+
+    const scheduleEx = () => { if (!exPending) { exPending = true; requestAnimationFrame(() => { exPending = false; renderExplorer(); }); } };
+
+    const syncBars = (c) => {
+      const tf = $("tab-filename"); if (tf) tf.textContent = c.name;
+      const sbl = $("sb-lang"); if (sbl) sbl.textContent = (LG[c.lang] || LG.python).label;
+    };
+    function updTitle(c) {
+      const t = c.el.querySelector(".sp-title");
+      t.textContent = "";
+      t.appendChild(h("span", "sp-name", c.name));
+      const d = descOf(c);
+      if (d || (ruleOn && LG[c.lang].re)) t.appendChild(h("span", "sp-desc" + (d ? "" : " none"), " / " + (d || L("(بدون وصف)", "(no description)"))));
+      t.title = L("انقر مرتين لتغيير اسم الملف", "Double-click to rename");
+      if (c === active) syncBars(c);
+    }
+
+    function setActive(c) {
+      active = c; curFolder = c.folder;
+      cards.forEach((x) => x.el.classList.toggle("sel", x === c));
+      c.el.style.zIndex = ++zTop;
+      $("lang").value = c.lang;
+      if (editor && editor.getModel() !== c.model) editor.setModel(c.model);
+      syncBars(c);
+      scheduleEx(); saveAll(); layoutFrames();
+    }
+
+    const renderFolderSelect = () => {
+      const s = $("sp-folder"); s.innerHTML = "";
+      const walk = (parent, depth) => childFolders(parent).forEach((f) => {
+        const o = h("option", "", "\u00A0\u00A0".repeat(depth) + baseName(f)); o.value = f; s.appendChild(o); walk(f, depth + 1);
+      });
+      walk("", 0);
+      s.value = curFolder;
+    };
+    const applyFolderVisibility = () => layoutFrames();
+    const openFile = (c) => { setActive(c); renderFolderSelect(); applyFolderVisibility(); };
+
+    // نافذة صغيرة داخل الصفحة بدل نوافذ المتصفح (prompt/confirm) اللي ممكن تنحجب
+    let pop = null, popOutside = null;
+    function closePopup() {
+      if (pop) { pop.remove(); pop = null; }
+      if (popOutside) { document.removeEventListener("mousedown", popOutside, true); popOutside = null; }
+    }
+    function popup(anchor, o) {
+      closePopup();
+      const p = h("div", ""); p.id = "info-pop"; pop = p;
+      p.appendChild(h("div", "ip-title", o.title));
+      const inputs = (o.fields || []).map((f) => {
+        const lab = h("label", "ip-label", f.label), inp = h("input", "ip-input");
+        inp.value = f.value || ""; inp.placeholder = f.placeholder || "";
+        if (f.ltr) inp.dir = "ltr";
+        lab.appendChild(inp); p.appendChild(lab); return inp;
+      });
+      const err = h("div", "ip-err"), row = h("div", "ip-row");
+      const ok = h("button", "primary", o.okLabel || L("حفظ", "Save")), no = h("button", "", L("إلغاء", "Cancel"));
+      row.append(ok, no); p.append(err, row);
+      document.body.appendChild(p);
+      const r = anchor.getBoundingClientRect();
+      p.style.top = Math.max(8, Math.min(r.bottom + 6, innerHeight - p.offsetHeight - 8)) + "px";
+      p.style.left = Math.max(8, Math.min(r.left, innerWidth - p.offsetWidth - 8)) + "px";
+      const done = (save) => {
+        if (save) { const msg = o.onSave(inputs.map((i) => i.value.trim())); if (msg) { err.textContent = msg; return; } }
+        closePopup();
+        if (!save && o.onCancel) o.onCancel();
+      };
+      ok.onclick = () => done(true); no.onclick = () => done(false);
+      p.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); done(true); } else if (e.key === "Escape") done(false); });
+      const outside = (e) => { if (pop && !pop.contains(e.target)) closePopup(); };
+      popOutside = outside;
+      setTimeout(() => { if (pop === p) document.addEventListener("mousedown", outside, true); }, 0);
+      if (inputs[0]) { inputs[0].focus(); inputs[0].select(); } else ok.focus();
+    }
+
+    // الوصف = تعليق أول سطر: نعدّله أو نضيفه أو نحذفه بتعديل بسيط على الملف (بيحافظ على التراجع Undo)
+    function setDesc(c, text) {
+      const m = c.model, t = text.trim();
+      const has = CM[c.lang].test(m.getLineContent(1).trim());
+      const nl = t && LG[c.lang].make ? LG[c.lang].make(t) : "";
+      let op = null;
+      if (has && nl) op = { range: new monaco.Range(1, 1, 1, m.getLineMaxColumn(1)), text: nl };
+      else if (has) op = { range: m.validateRange(new monaco.Range(1, 1, 2, 1)), text: "" };
+      else if (nl) op = { range: new monaco.Range(1, 1, 1, 1), text: nl + "\n" };
+      if (!op) return;
+      m.pushStackElement();
+      m.pushEditOperations([], [op], () => null);
+      m.pushStackElement();
+    }
+
+    function editInfo(c, anchor) {
+      popup(anchor, {
+        title: L("تعديل الملف", "Edit file"),
+        fields: [
+          { label: L("اسم الملف", "File name"), value: c.name, ltr: true },
+          ...(LG[c.lang].re ? [{ label: L("وصف قصير (بيُكتب كتعليق بأول سطر)", "Short description (written as the first-line comment)"), value: descOf(c), placeholder: L("مثال: يحرك الصوت", "e.g. moves the sound") }] : [])
+        ],
+        onSave: (v) => {
+          const n = v[0];
+          if (!n) return L("اسم الملف مطلوب.", "File name is required.");
+          if (cards.some((x) => x !== c && x.folder === c.folder && x.name === n)) return L("يوجد ملف بنفس الاسم بهذا المجلد.", "A file with this name already exists in this folder.");
+          c.name = n;
+          if (v.length > 1 && v[1] !== descOf(c)) setDesc(c, v[1]);
+          updTitle(c); scheduleEx(); saveAll();
+        }
+      });
+    }
+
+    function editFolder(old, anchor) {
+      popup(anchor, {
+        title: L("تغيير اسم المجلد", "Rename folder"),
+        fields: [{ label: L("اسم المجلد", "Folder name"), value: baseName(old) }],
+        onSave: (v) => {
+          const n = v[0];
+          if (!n) return L("اسم المجلد مطلوب.", "Folder name is required.");
+          if (n.includes("/")) return L("الاسم ما يحتوي على /", "The name cannot contain /");
+          const np = parentOf(old) ? parentOf(old) + "/" + n : n;
+          if (np === old) return;
+          if (folders.includes(np)) return L("يوجد مجلد بنفس الاسم هون.", "A folder with this name already exists here.");
+          remapFolder(old, np);
+        }
+      });
+    }
+
+    function setLang(c, v) {
+      c.lang = v;
+      monaco.editor.setModelLanguage(c.model, v);
+      c.name = c.name.replace(/\.[A-Za-z0-9]+$/, "." + EXT[v]);
+      c.el.querySelector(".sp-lang").value = v;
+      if (c === active) $("lang").value = v;
+      updTitle(c); syncBars(c); scheduleEx(); saveAll();
+    }
+
+    // ===== إطارات المجلدات بالفضاء: كل مجلد إطار بيحيط بملفاته وبمجلداته الفرعية =====
+    const hasContent = (f) => cards.some((c) => inTree(c.folder, f));
+    // لما مجلد يفضى (نقل أو حذف ملفات)، بنثبّت إطاره مكانه بدل ما يقفز لمكان ثاني
+    function withPlaces(fn) {
+      const snap = {}, had = {};
+      folders.forEach((f) => { snap[f] = frameBox(f); had[f] = hasContent(f); });
+      fn();
+      folders.forEach((f) => { if (had[f] && snap[f] && !hasContent(f)) fpos[f] = { x: snap[f].x1, y: snap[f].y1 }; });
+    }
+    function frameBox(f, skip) {
+      let b = null;
+      const add = (x1, y1, x2, y2) => { b = b ? { x1: Math.min(b.x1, x1), y1: Math.min(b.y1, y1), x2: Math.max(b.x2, x2), y2: Math.max(b.y2, y2) } : { x1: x1, y1: y1, x2: x2, y2: y2 }; };
+      cards.forEach((c) => { if (c.folder === f && c !== skip) add(c.x, c.y, c.x + c.w, c.y + c.h); });
+      childFolders(f).forEach((k) => { const cb = frameBox(k, skip); add(cb.x1, cb.y1, cb.x2, cb.y2); });
+      if (!b) { const p = fpos[f] || { x: 80, y: 60 }; return { x1: p.x, y1: p.y, x2: p.x + EW, y2: p.y + EH }; }
+      return { x1: b.x1 - PAD, y1: b.y1 - TOP, x2: b.x2 + PAD, y2: b.y2 + PAD };
+    }
+    function allBox() {
+      let b = null;
+      childFolders("").filter((f) => hasContent(f) || fpos[f]).forEach((f) => {
+        const fb = frameBox(f);
+        b = b ? { x1: Math.min(b.x1, fb.x1), y1: Math.min(b.y1, fb.y1), x2: Math.max(b.x2, fb.x2), y2: Math.max(b.y2, fb.y2) } : fb;
+      });
+      return b;
+    }
+    function makeFrame() {
+      const el = h("div", "sp-frame"), head = h("div", "fr-head"), acts = h("span", "fr-acts");
+      const mk = (txt, fn) => { const b = h("button", "", txt); b.onclick = (e) => { e.stopPropagation(); fn(el.dataset.path, e.currentTarget); }; acts.appendChild(b); };
+      mk("📄+", (p) => addCard(undefined, undefined, p));
+      mk("📁+", (p, a) => newFolder(a, p));
+      mk("✎", (p, a) => editFolder(p, a));
+      mk("✕", (p, a) => deleteFolder(p, a));
+      mk("🔍", (p) => { if (window.AysarSearch) window.AysarSearch.openIn(p); });
+      head.append(h("span", "fr-name"), acts);
+      head.addEventListener("mousedown", (e) => { if (!e.target.closest("button")) startFolderDrag(el.dataset.path, e); });
+      el.appendChild(head); stage.appendChild(el);
+      return el;
+    }
+    function layoutFrames() {
+      folders.forEach((f) => {
+        const el = frames[f] || (frames[f] = makeFrame());
+        el.dataset.path = f;
+        const b = frameBox(f);
+        el.style.cssText = "left:" + b.x1 + "px;top:" + b.y1 + "px;width:" + (b.x2 - b.x1) + "px;height:" + (b.y2 - b.y1) + "px;z-index:" + (f.split("/").length - 1);
+        el.classList.toggle("cur", f === curFolder);
+        el.querySelector(".fr-name").textContent = "📁 " + baseName(f);
+        const bs = el.querySelectorAll(".fr-acts button");
+        bs[0].title = L("ملف جديد داخل هذا المجلد", "New file in this folder");
+        bs[1].title = L("مجلد جديد داخل هذا المجلد", "New folder in this folder");
+        bs[2].title = L("تغيير اسم المجلد", "Rename folder");
+        bs[3].title = L("حذف المجلد", "Delete folder");
+        bs[4].title = L("بحث في هذا المجلد", "Search in this folder");
+      });
+      Object.keys(frames).forEach((f) => { if (!folders.includes(f)) { frames[f].remove(); delete frames[f]; } });
+    }
+    function startFolderDrag(path, e) {
+      curFolder = path; renderFolderSelect(); renderExplorer();
+      drag = { mode: "fmove", sx: e.clientX, sy: e.clientY,
+        cs: cards.filter((c) => inTree(c.folder, path)).map((c) => ({ c: c, ox: c.x, oy: c.y })),
+        fp: Object.keys(fpos).filter((k) => inTree(k, path)).map((k) => ({ k: k, ox: fpos[k].x, oy: fpos[k].y })) };
+    }
+    function frameAt(x, y) {
+      let best = null, area = 1e18;
+      folders.forEach((f) => {
+        const b = frameBox(f);
+        if (x >= b.x1 && x <= b.x2 && y >= b.y1 && y <= b.y2) { const a = (b.x2 - b.x1) * (b.y2 - b.y1); if (a < area) { area = a; best = f; } }
+      });
+      return best;
+    }
+    // مكان فاضي داخل المجلد لملف جديد: يمين المحتوى (أو داخل إطار المجلد الفاضي)
+    function slotIn(folder) {
+      if (!hasContent(folder)) { const p = fpos[folder] || { x: 80, y: 60 }; return { x: p.x + PAD, y: p.y + TOP }; }
+      const b = frameBox(folder);
+      if (cards.some((k) => k.folder === folder)) return { x: b.x2 - PAD + 24, y: b.y1 + TOP };
+      return { x: b.x1 + PAD, y: b.y2 - PAD + 24 };
+    }
+    function placeFolder(path) {
+      const parent = parentOf(path);
+      if (parent) { const pb = frameBox(parent); fpos[path] = { x: pb.x1 + PAD, y: pb.y2 + 20 }; }
+      else { const ab = allBox(); fpos[path] = ab ? { x: ab.x2 + 80, y: ab.y1 } : { x: 80, y: 60 }; }
+    }
+    const ensureFpos = () => folders.slice().sort((a, b) => a.length - b.length).forEach((f) => { if (!hasContent(f) && !fpos[f]) placeFolder(f); });
+    function fit(b) {
+      const r = spView.getBoundingClientRect(), w = b.x2 - b.x1, hh = b.y2 - b.y1;
+      view.z = Math.min(1.05, Math.max(0.3, Math.min((r.width - 140) / w, (r.height - 160) / hh)));
+      view.x = r.width / 2 - (b.x1 + w / 2) * view.z; view.y = r.height / 2 - (b.y1 + hh / 2) * view.z;
+      applyView();
+    }
+    const center = () => { const b = allBox(); if (b) fit(b); else { view = { x: 60, y: 40, z: 1 }; applyView(); } };
+    const focusFolder = () => fit(frameBox(curFolder));
+    function ensureVisible(c) {
+      if (!inSpace) return;
+      const r = spView.getBoundingClientRect(), sx = c.x * view.z + view.x, sy = c.y * view.z + view.y;
+      if (sx < 0 || sy < 0 || sx + 120 > r.width || sy + 60 > r.height) {
+        view.x = r.width / 2 - (c.x + c.w / 2) * view.z; view.y = r.height / 2 - (c.y + c.h / 2) * view.z; applyView();
+      }
+    }
+    function shiftTree(path, dx, dy) {
+      folders.filter((f) => inTree(f, path) && !hasContent(f) && !fpos[f]).forEach((f) => { fpos[f] = { x: 80, y: 60 }; });
+      cards.forEach((c) => { if (inTree(c.folder, path)) { c.x += dx; c.y += dy; c.el.style.left = c.x + "px"; c.el.style.top = c.y + "px"; } });
+      Object.keys(fpos).forEach((k) => { if (inTree(k, path)) fpos[k] = { x: fpos[k].x + dx, y: fpos[k].y + dy }; });
+    }
+
+    // ===== نقل الملفات والمجلدات =====
+    function moveFile(c, target, relocate) {
+      if (c.folder === target) return;
+      let n = c.name;
+      if (cards.some((x) => x !== c && x.folder === target && x.name === n)) {
+        const m = n.match(/^(.*?)(\.[^.]*)?$/); let i = 2;
+        do { n = m[1] + "-" + i + (m[2] || ""); i++; } while (cards.some((x) => x !== c && x.folder === target && x.name === n));
+      }
+      withPlaces(() => {
+        const slot = relocate ? slotIn(target) : null;
+        c.name = n; c.folder = target;
+        if (slot) { c.x = slot.x; c.y = slot.y; c.el.style.left = c.x + "px"; c.el.style.top = c.y + "px"; }
+      });
+      collapsed.delete(target); saveCollapsed();
+      updTitle(c); renderFolderSelect(); renderExplorer(); saveAll(); layoutFrames();
+      say(L("نُقل الملف إلى ", "File moved to ") + target.replace(/\//g, " / "), true);
+    }
+    function dropCard(c, e) {
+      const r = spView.getBoundingClientRect(), px = (e.clientX - r.left - view.x) / view.z, py = (e.clientY - r.top - view.y) / view.z;
+      const ownEmpty = !cards.some((k) => k !== c && inTree(k.folder, c.folder));
+      let best = null, area = 1e18;
+      folders.forEach((f) => {
+        if (ownEmpty && inTree(c.folder, f)) return;   // لو هو الملف الوحيد بمجلده ما بنطلّعه لفوق بالغلط
+        const b = frameBox(f, c);
+        if (px >= b.x1 && px <= b.x2 && py >= b.y1 && py <= b.y2) { const a = (b.x2 - b.x1) * (b.y2 - b.y1); if (a < area) { area = a; best = f; } }
+      });
+      if (best && best !== c.folder) moveFile(c, best, false);
+    }
+    function remapFolder(old, np) {
+      const mp = (p) => (inTree(p, old) ? np + p.slice(old.length) : p);
+      folders = folders.map(mp);
+      cards.forEach((c) => { c.folder = mp(c.folder); });
+      curFolder = mp(curFolder);
+      const cs = Array.from(collapsed).map(mp); collapsed.clear(); cs.forEach((x) => collapsed.add(x)); saveCollapsed();
+      Object.keys(fpos).forEach((k) => { const nk = mp(k); if (nk !== k) { fpos[nk] = fpos[k]; delete fpos[k]; } });
+      renderFolderSelect(); renderExplorer(); saveAll(); layoutFrames();
+    }
+    function moveFolder(path, tp) {
+      if (tp === parentOf(path) || inTree(tp, path)) return;
+      const np = tp ? tp + "/" + baseName(path) : baseName(path);
+      if (folders.includes(np)) { say(L("يوجد مجلد بنفس الاسم بالوجهة.", "A folder with this name already exists there."), false); return; }
+      const sb = frameBox(path), ab = allBox();
+      const tgt = tp ? slotIn(tp) : (ab ? { x: ab.x2 + 80, y: ab.y1 } : { x: 80, y: 60 });
+      shiftTree(path, tgt.x - sb.x1, tgt.y - sb.y1);
+      remapFolder(path, np);
+      if (tp) { collapsed.delete(tp); saveCollapsed(); }
+      renderExplorer();
+      say(L("نُقل المجلد.", "Folder moved."), true);
+    }
+    function deleteFolder(path, anchor) {
+      const n = cards.filter((c) => inTree(c.folder, path)).length;
+      popup(anchor, {
+        title: L("حذف المجلد " + path.replace(/\//g, " / ") + " وكل ما بداخله (" + n + " ملف)؟", "Delete folder " + path + " and everything inside (" + n + " files)?"),
+        okLabel: L("حذف", "Delete"), onSave: () => doDeleteFolder(path)
+      });
+    }
+    function doDeleteFolder(path) { withPlaces(() => doDeleteFolder2(path)); }
+    function doDeleteFolder2(path) {
+      Sound.click();
+      const gone = cards.filter((c) => inTree(c.folder, path));
+      folders = folders.filter((f) => !inTree(f, path));
+      Object.keys(fpos).forEach((k) => { if (inTree(k, path)) delete fpos[k]; });
+      Array.from(collapsed).forEach((k) => { if (inTree(k, path)) collapsed.delete(k); });
+      if (!folders.length) folders.push("مشروعي");
+      if (inTree(curFolder, path)) curFolder = folders.includes(parentOf(path)) ? parentOf(path) : childFolders("")[0];
+      if (cards.every((c) => gone.includes(c))) addCard(undefined, undefined, curFolder);   // دايماً بيضل ملف واحد على الأقل
+      if (gone.includes(active)) setActive(cards.find((c) => !gone.includes(c)));
+      gone.forEach((c) => { c.ed.dispose(); c.model.dispose(); c.el.remove(); });
+      cards = cards.filter((c) => !gone.includes(c));
+      saveCollapsed(); renderFolderSelect(); renderExplorer(); saveAll(); layoutFrames();
+    }
+
+    function newFolder(anchor, parent) {
+      parent = parent || "";
+      popup(anchor, {
+        title: parent ? L("مجلد جديد داخل ", "New folder inside ") + parent.replace(/\//g, " / ") : L("مجلد جديد (بالجذر)", "New top-level folder"),
+        fields: [{ label: L("اسم المجلد", "Folder name"), value: "" }],
+        onSave: (v) => {
+          const n = v[0];
+          if (!n) return L("اسم المجلد مطلوب.", "Folder name is required.");
+          if (n.includes("/")) return L("الاسم ما يحتوي على /", "The name cannot contain /");
+          const path = parent ? parent + "/" + n : n;
+          if (folders.includes(path)) return L("يوجد مجلد بنفس الاسم هون.", "A folder with this name already exists here.");
+          placeFolder(path); folders.push(path); curFolder = path; collapsed.delete(parent); saveCollapsed();
+          renderFolderSelect(); renderExplorer(); saveAll(); layoutFrames(); focusFolder();
+        }
+      });
+    }
+
+    function renderExplorer() {
+      const box = $("explorer"); box.innerHTML = "";
+      const head = h("div", "ex-head"), bt = h("span", "ex-btns");
+      head.appendChild(h("b", "", L("المستكشف", "EXPLORER")));
+      const addF = h("button", "", L("+ ملف", "+ File")); addF.title = L("ملف جديد بالمجلد الحالي", "New file in the current folder");
+      addF.onclick = () => addCard();
+      const addD = h("button", "", L("+ مجلد", "+ Folder")); addD.title = L("مجلد جديد بالجذر", "New top-level folder");
+      addD.onclick = (e) => newFolder(e.currentTarget, "");
+      bt.append(addF, addD); head.appendChild(bt); box.appendChild(head);
+      if (window.AysarDisk) window.AysarDisk.renderBar(box);
+      // إفلات مجلد على خلفية القائمة = نقله للجذر
+      box.ondragover = (e) => { if (exDrag && exDrag.kind === "folder") e.preventDefault(); };
+      box.ondrop = (e) => { e.preventDefault(); const d = exDrag; exDrag = null; if (d && d.kind === "folder") moveFolder(d.path, ""); };
+      childFolders("").forEach((f) => renderNode(box, f, 0));
+    }
+
+    function renderNode(box, folder, depth) {
+      const open = !collapsed.has(folder);
+      const fh = h("div", "ex-folder" + (folder === curFolder ? " cur" : ""));
+      fh.style.paddingInlineStart = (6 + depth * 14) + "px";
+      const acts = h("span", "ex-acts");
+      const bF = h("button", "ex-edit", "📄+"), bD = h("button", "ex-edit", "📁+"), bE = h("button", "ex-edit", "✎"), bX = h("button", "ex-edit", "✕"), bS = h("button", "ex-edit", "🔍");
+      bF.title = L("ملف جديد داخل هذا المجلد", "New file in this folder");
+      bD.title = L("مجلد جديد داخل هذا المجلد", "New folder in this folder");
+      bE.title = L("تغيير اسم المجلد", "Rename folder");
+      bX.title = L("حذف المجلد", "Delete folder");
+      bF.onclick = (e) => { e.stopPropagation(); collapsed.delete(folder); saveCollapsed(); addCard(undefined, undefined, folder); };
+      bD.onclick = (e) => { e.stopPropagation(); newFolder(e.currentTarget, folder); };
+      bE.onclick = (e) => { e.stopPropagation(); editFolder(folder, e.currentTarget); };
+      bX.onclick = (e) => { e.stopPropagation(); deleteFolder(folder, e.currentTarget); };
+      bS.title = L("بحث في هذا المجلد", "Search in this folder");
+      bS.onclick = (e) => { e.stopPropagation(); if (window.AysarSearch) window.AysarSearch.openIn(folder); };
+      acts.append(bF, bD, bE, bX, bS);
+      fh.append(h("span", "", (open ? "▾ " : "▸ ") + "📁 " + baseName(folder)), acts);
+      fh.onclick = () => {
+        if (open) collapsed.add(folder); else collapsed.delete(folder);
+        saveCollapsed(); curFolder = folder;
+        renderFolderSelect(); renderExplorer(); saveAll(); layoutFrames();
+      };
+      // سحب وإفلات: اسحب ملف أو مجلد وأفلته على مجلد لنقله
+      fh.draggable = true;
+      fh.ondragstart = (e) => { exDrag = { kind: "folder", path: folder }; if (e.dataTransfer) { e.dataTransfer.setData("text/plain", folder); e.dataTransfer.effectAllowed = "move"; } };
+      fh.ondragend = () => { exDrag = null; };
+      fh.ondragover = (e) => { if (exDrag) { e.preventDefault(); fh.classList.add("drop"); } };
+      fh.ondragleave = () => fh.classList.remove("drop");
+      fh.ondrop = (e) => {
+        e.preventDefault(); e.stopPropagation(); fh.classList.remove("drop");
+        const d = exDrag; exDrag = null;
+        if (!d) return;
+        if (d.kind === "file") moveFile(d.c, folder, true); else moveFolder(d.path, folder);
+      };
+      box.appendChild(fh);
+      if (!open) return;
+      childFolders(folder).forEach((f) => renderNode(box, f, depth + 1));
+      cards.filter((c) => c.folder === folder).sort((a, b) => cmp(a.name, b.name)).forEach((c) => {
+        const row = h("div", "ex-file" + (c === active ? " on" : ""));
+        row.style.paddingInlineStart = (8 + (depth + 1) * 14) + "px";
+        const nm = h("span", "ex-name", c.name);
+        const d = descOf(c);
+        const ds = h("span", "ex-desc" + (d ? "" : " none"), d ? "/ " + d : (ruleOn && LG[c.lang].re ? L("/ (بدون وصف)", "/ (no description)") : ""));
+        const eb = h("button", "ex-edit", "✎"), del = h("button", "ex-del", "✕");
+        eb.title = L("تعديل الاسم والوصف", "Edit name and description");
+        row.append(nm, ds, eb, del);
+        row.onclick = () => openFile(c);
+        eb.onclick = (e) => { e.stopPropagation(); editInfo(c, e.currentTarget); };
+        del.onclick = (e) => { e.stopPropagation(); removeFile(c, e.currentTarget); };
+        row.draggable = true;
+        row.ondragstart = (e) => { exDrag = { kind: "file", c: c }; if (e.dataTransfer) { e.dataTransfer.setData("text/plain", c.name); e.dataTransfer.effectAllowed = "move"; } };
+        row.ondragend = () => { exDrag = null; };
+        box.appendChild(row);
+      });
+    }
+
+    function makeCard(d) {
+      const c = { id: ++uid, name: d.name, folder: d.folder, lang: d.lang, code: d.code, x: d.x, y: d.y, w: d.w, h: d.h };
+      ensurePath(c.folder);
+      // كل ملف له model خاص: المحرر التقليدي وكتلة الفضاء بيعدّلوا نفس الملف، وبيحتفظ بالتراجع (Undo)
+      c.model = monaco.editor.createModel(c.code, c.lang);
+      const el = document.createElement("div");
+      el.className = "sp-card";
+      el.style.cssText = "left:" + c.x + "px;top:" + c.y + "px;width:" + c.w + "px;height:" + c.h + "px";
+      el.innerHTML = '<div class="sp-head"><span class="sp-title"></span><span class="sp-actions"><button class="sp-find" title="بحث في الملف (Ctrl+F)">🔎</button><button class="sp-edit" title="تعديل الاسم والوصف">✎</button>' +
+        '<select class="sp-lang">' + Object.keys(LG).map((k) => '<option value="' + k + '">' + LG[k].label + '</option>').join("") + '</select>' +
+        '<button class="sp-conv"></button><button class="sp-del">✕</button></span></div><div class="sp-body"></div><div class="sp-resize"></div>';
+      c.el = el; stage.appendChild(el); cards.push(c);
+      el.querySelector(".sp-lang").value = c.lang;
+      updTitle(c);
+
+      c.model.onDidChangeContent(() => { c.code = c.model.getValue(); updTitle(c); scheduleEx(); saveAll(); });
+      el.addEventListener("mousedown", () => setActive(c));
+      el.querySelector(".sp-title").addEventListener("dblclick", () => editInfo(c, el.querySelector(".sp-title")));
+      el.querySelector(".sp-edit").addEventListener("click", (e) => editInfo(c, e.currentTarget));
+      el.querySelector(".sp-find").addEventListener("click", () => { setActive(c); c.ed.focus(); const fa = c.ed.getAction("actions.find"); if (fa) fa.run(); });
+      el.querySelector(".sp-head").addEventListener("mousedown", (e) => {
+        if (e.target.closest("button,select")) return;
+        drag = { c: c, mode: "move", sx: e.clientX, sy: e.clientY, ox: c.x, oy: c.y };
+      });
+      el.querySelector(".sp-resize").addEventListener("mousedown", (e) => { drag = { c: c, mode: "size", sx: e.clientX, sy: e.clientY, ow: c.w, oh: c.h }; });
+      el.querySelector(".sp-lang").addEventListener("change", (e) => setLang(c, e.target.value));
+      el.querySelector(".sp-conv").addEventListener("click", () => { setActive(c); convertCurrentLine(); });
+      el.querySelector(".sp-del").addEventListener("click", (e) => removeFile(c, e.currentTarget));
+
+      c.ed = monaco.editor.create(el.querySelector(".sp-body"), {
+        model: c.model, automaticLayout: true,
+        fontFamily: '"JetBrains Mono", ui-monospace, Consolas, monospace', fontSize: 14,
+        minimap: { enabled: false }, scrollBeyondLastLine: false, padding: { top: 8 }
+      });
+      c.ed.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, convertCurrentLine);
+      c.ed.onKeyDown((e) => { const ev = e.browserEvent; if (ev.ctrlKey || ev.metaKey || ev.altKey) return; Sound.keystroke(ev.key); });
+      c.ed.onDidChangeCursorPosition((e) => { if (c === active && typeof updateCursorPos === "function") updateCursorPos(e.position.lineNumber, e.position.column); });
+      c.ed.onDidFocusEditorWidget(() => setActive(c));
+      return c;
+    }
+
+    function addCard(x, y, folder) {
+      if (!monacoReady) return;
+      if (folder !== undefined && folders.includes(folder)) curFolder = folder;
+      const lang = $("lang").value;
+      const s = x === undefined ? slotIn(curFolder) : { x: x, y: y };
+      const c = makeCard({ name: uniqueName(curFolder, lang), folder: curFolder, lang: lang, code: starterFor(lang), x: s.x, y: s.y, w: 520, h: 320 });
+      setActive(c); renderFolderSelect(); layoutFrames(); saveAll(); Sound.success();
+      ensureVisible(c);
+    }
+
+    function removeFile(c, anchor) {
+      popup(anchor, { title: L("حذف الملف " + c.name + "؟", "Delete " + c.name + "?"), okLabel: L("حذف", "Delete"), onSave: () => doRemove(c) });
+    }
+    function doRemove(c) {
+      Sound.click();
+      if (cards.length === 1) addCard();   // دايماً بيضل ملف واحد على الأقل
+      if (active === c) setActive(cards.find((x) => x !== c && x.folder === c.folder) || cards.find((x) => x !== c));
+      withPlaces(() => { c.ed.dispose(); c.model.dispose(); c.el.remove(); cards = cards.filter((x) => x !== c); });
+      renderFolderSelect(); applyFolderVisibility(); scheduleEx(); saveAll();
+    }
+
+    function loadAll() {
+      let s = null;
+      try { s = JSON.parse(store("aysar-files") || "null"); } catch (e) {}
+      if (s && Array.isArray(s.files) && s.files.length) {
+        if (Array.isArray(s.folders) && s.folders.length) folders = s.folders;
+        folders.slice().forEach(ensurePath);
+        curFolder = s.cur && folders.includes(s.cur) ? s.cur : folders[0];
+        if (s.fpos && typeof s.fpos === "object") Object.assign(fpos, s.fpos);
+        s.files.forEach(makeCard);
+        setActive(cards[s.active] || cards[0]);
+      } else {
+        const lang = $("lang").value;
+        setActive(makeCard({ name: "main." + EXT[lang], folder: curFolder, lang: lang, code: editor ? editor.getValue() : starterFor(lang), x: 120, y: 80, w: 560, h: 340 }));
+      }
+      ensureFpos(); renderFolderSelect(); applyFolderVisibility(); renderExplorer(); sync();
+    }
+
+    function enter() {
+      inSpace = true; store("aysar-space", "1");
+      sync(); resizeStars(); applyView();
+      setTimeout(() => cards.forEach((c) => c.ed.layout()), 50);
+    }
+    function exit() {
+      inSpace = false; store("aysar-space", "0");
+      sync();
+      if (editor) setTimeout(() => { editor.layout(); editor.focus(); }, 50);
+    }
+    const toggle = () => (inSpace ? exit() : enter());
+    window.__toggleSpace = toggle;
+
+    const zoomBy = (f) => { view.z = Math.max(0.3, Math.min(2.2, view.z * f)); applyView(); };
+    window.addEventListener("mousemove", (e) => {
+      if (drag) {
+        const dx = (e.clientX - drag.sx) / view.z, dy = (e.clientY - drag.sy) / view.z;
+        if (drag.mode === "move") { const c = drag.c; c.x = drag.ox + dx; c.y = drag.oy + dy; c.el.style.left = c.x + "px"; c.el.style.top = c.y + "px"; drag.moved = true; }
+        else if (drag.mode === "size") { const c = drag.c; c.w = Math.max(300, drag.ow + dx); c.h = Math.max(200, drag.oh + dy); c.el.style.width = c.w + "px"; c.el.style.height = c.h + "px"; c.ed.layout(); }
+        else {
+          drag.cs.forEach((o) => { o.c.x = o.ox + dx; o.c.y = o.oy + dy; o.c.el.style.left = o.c.x + "px"; o.c.el.style.top = o.c.y + "px"; });
+          drag.fp.forEach((o) => { fpos[o.k] = { x: o.ox + dx, y: o.oy + dy }; });
+        }
+        layoutFrames();
+      } else if (pan) { view.x = e.clientX - pan.sx; view.y = e.clientY - pan.sy; applyView(); }
+    });
+    window.addEventListener("mouseup", (e) => {
+      if (drag) {
+        if (drag.mode === "move" && drag.moved) dropCard(drag.c, e);
+        saveAll(); layoutFrames();
+      }
+      drag = null; pan = null;
+    });
+    spView.addEventListener("mousedown", (e) => { if (e.target === spView) pan = { sx: e.clientX - view.x, sy: e.clientY - view.y }; });
+    spView.addEventListener("wheel", (e) => {
+      if (e.target.closest(".sp-body")) return;
+      e.preventDefault();
+      const r = spView.getBoundingClientRect(), mx = e.clientX - r.left, my = e.clientY - r.top;
+      const nz = Math.max(0.3, Math.min(2.2, view.z * (e.deltaY < 0 ? 1.08 : 0.92)));
+      view.x = mx - (mx - view.x) * (nz / view.z); view.y = my - (my - view.y) * (nz / view.z); view.z = nz;
+      applyView();
+    }, { passive: false });
+    spView.addEventListener("dblclick", (e) => {
+      if (e.target !== spView) return;
+      const r = spView.getBoundingClientRect(), x = (e.clientX - r.left - view.x) / view.z, y = (e.clientY - r.top - view.y) / view.z;
+      addCard(x - 260, y - 40, frameAt(x, y) || curFolder);   // الملف الجديد بينضاف للمجلد اللي نقرت جواه
+    });
+
+    const cv = $("space-stars"), cx = cv.getContext("2d");
+    let stars = [];
+    function resizeStars() {
+      cv.width = spView.clientWidth; cv.height = spView.clientHeight;
+      stars = Array.from({ length: 160 }, () => ({ x: Math.random() * cv.width, y: Math.random() * cv.height, r: Math.random() * 1.6 + 0.3,
+        a: Math.random() * 0.8 + 0.2, p: Math.random() * 6.28, c: ["#818cf8", "#38bdf8", "#c084fc", "#ffffff"][Math.floor(Math.random() * 4)] }));
+    }
+    window.addEventListener("resize", () => { if (inSpace) resizeStars(); });
+    (function loop() {
+      if (inSpace && cx) {
+        cx.clearRect(0, 0, cv.width, cv.height);
+        const t = performance.now() / 1000;
+        stars.forEach((s) => { cx.globalAlpha = s.a * (0.6 + 0.4 * Math.sin(t * 1.5 + s.p)); cx.fillStyle = s.c; cx.beginPath(); cx.arc(s.x, s.y, s.r, 0, 6.283); cx.fill(); });
+        cx.globalAlpha = 1;
+      }
+      requestAnimationFrame(loop);
+    })();
+
+    if ($("btn-space")) $("btn-space").addEventListener("click", toggle);
+    $("sp-exit").addEventListener("click", exit);
+    $("sp-in").addEventListener("click", () => zoomBy(1.2));
+    $("sp-out").addEventListener("click", () => zoomBy(0.83));
+    $("sp-center").addEventListener("click", center);
+    $("sp-newfolder").addEventListener("click", (e) => newFolder(e.currentTarget, curFolder));
+    $("sp-editfolder").addEventListener("click", (e) => editFolder(curFolder, e.currentTarget));
+    $("sp-add").addEventListener("click", () => addCard());
+    $("sp-folder").addEventListener("change", (e) => {
+      curFolder = e.target.value;
+      const f = cards.find((c) => c.folder === curFolder);
+      if (f) setActive(f); else { renderExplorer(); saveAll(); layoutFrames(); }
+      focusFolder();
+    });
+    $("sp-frame").addEventListener("click", () => { frameless = !frameless; store("aysar-frameless", frameless ? "1" : "0"); sync(); });
+    $("btn-rule").addEventListener("click", () => { ruleOn = !ruleOn; store("aysar-rule", ruleOn ? "1" : "0"); sync(); cards.forEach(updTitle); scheduleEx(); });
+    $("lang").addEventListener("change", (e) => { if (active) setLang(active, e.target.value); });
+
+    // زر التحويل والاختصار بيشتغلوا على الملف المفتوح (بالمحرر التقليدي أو بكتلة الفضاء)
+    window.__activeEditor = () => (inSpace ? (active && active.ed) : editor);
+    window.__aiLangs = Object.keys(LG).filter((k) => LG[k].ai);
+    window.__activeLang = () => (active ? active.lang : $("lang").value);
+
+    // ===== واجهة المشروع للوحدات الثانية (الحفظ على القرص...) =====
+    function replaceAll(tree) {
+      cards.forEach((c) => { c.ed.dispose(); c.model.dispose(); c.el.remove(); });
+      cards = []; active = null; folders = [];
+      Object.keys(fpos).forEach((k) => { delete fpos[k]; });
+      collapsed.clear(); saveCollapsed();
+      const files = tree.files || [];
+      (tree.folders || []).forEach(ensurePath);
+      files.forEach((f) => ensurePath(f.folder));
+      if (!folders.length) folders.push("مشروعي");
+      let y = 80;
+      const band = (f, depth) => {
+        const mine = files.filter((x) => x.folder === f);
+        mine.forEach((x, i) => { x.x = 80 + depth * 40 + (i % 3) * 560; x.y = y + Math.floor(i / 3) * 360; });
+        if (mine.length) y += Math.ceil(mine.length / 3) * 360 + 100;
+        childFolders(f).forEach((k) => band(k, depth + 1));
+      };
+      childFolders("").forEach((f) => band(f, 0));
+      files.forEach((f) => makeCard({ name: f.name, folder: f.folder, lang: f.lang, code: f.code, x: f.x, y: f.y, w: 520, h: 320 }));
+      curFolder = childFolders("")[0];
+      view = { x: 60, y: 40, z: 1 };
+      if (!cards.length) addCard(undefined, undefined, curFolder); else setActive(cards[0]);
+      ensureFpos(); renderFolderSelect(); renderExplorer(); saveAll(); layoutFrames(); applyView();
+      if (inSpace) center();
+    }
+    window.AysarProject = {
+      snapshot: () => ({ folders: folders.slice(), files: cards.map((c) => ({ folder: c.folder, name: c.name, lang: c.lang, code: c.model.getValue() })) }),
+      replace: replaceAll,
+      isSpace: () => inSpace,
+      toggleSpace: () => toggle(),
+      files: () => cards.map((c) => ({ id: c.id, folder: c.folder, name: c.name, lang: c.lang, code: c.model.getValue() })),
+      activeId: () => (active ? active.id : null),
+      activate: (id) => {
+        const c = cards.find((x) => x.id === id);
+        if (!c) return false;
+        openFile(c);
+        if (inSpace) ensureVisible(c);
+        return true;
+      },
+      reveal: (id, line, c1, c2) => {
+        const c = cards.find((x) => x.id === id);
+        if (!c) return false;
+        openFile(c);
+        if (inSpace) ensureVisible(c);
+        const ed = inSpace ? c.ed : editor, r = new monaco.Range(line, c1, line, c2);
+        ed.setSelection(r); ed.revealRangeInCenter(r); ed.focus();
+        return true;
+      },
+      applyEdits: (id, edits) => {
+        const c = cards.find((x) => x.id === id);
+        if (!c) return false;
+        const m = c.model;
+        m.pushStackElement();
+        m.pushEditOperations([], edits.map((e) => ({ range: new monaco.Range(e.line, e.c1, e.line, e.c2), text: e.text })), () => null);
+        m.pushStackElement();
+        return true;
+      },
+      newFile: () => addCard(),
+      newFolder: () => newFolder(document.body, curFolder),
+      folders: () => folders.slice(),
+      activeFolder: () => curFolder,
+      highlight: (id, ranges) => {
+        const c = cards.find((x) => x.id === id);
+        if (!c) return false;
+        c.hl = c.model.deltaDecorations(c.hl || [], ranges.map((r) => ({ range: new monaco.Range(r.line, r.c1, r.line, r.c2), options: { className: "aysar-hit" } })));
+        return true;
+      },
+      clearHighlights: () => { cards.forEach((c) => { if (c.hl && c.hl.length) c.hl = c.model.deltaDecorations(c.hl, []); }); },
+      find: (replace) => {
+        const ed = inSpace ? (active && active.ed) : editor;
+        if (!ed) return false;
+        ed.focus();
+        const a = ed.getAction(replace ? "editor.action.startFindReplace" : "actions.find");
+        if (a) a.run();
+        return !!a;
+      },
+      updateFile: (folder, name, code) => {
+        const c = cards.find((x) => x.folder === folder && x.name === name);
+        if (!c) return false;
+        const m = c.model;
+        m.pushStackElement();
+        m.pushEditOperations([], [{ range: m.getFullModelRange(), text: code }], () => null);
+        m.pushStackElement();
+        return true;
+      },
+      addFile: (f) => {
+        ensurePath(f.folder);
+        const s = slotIn(f.folder);
+        makeCard({ name: f.name, folder: f.folder, lang: f.lang, code: f.code, x: s.x, y: s.y, w: 520, h: 320 });
+        layoutFrames(); renderFolderSelect(); scheduleEx(); saveAll();
+        return true;
+      },
+      removeFile: (folder, name) => {
+        const c = cards.find((x) => x.folder === folder && x.name === name);
+        if (!c) return false;
+        doRemove(c);
+        return true;
+      },
+      addFolder: (p) => {
+        if (folders.includes(p)) return;
+        placeFolder(p); ensurePath(p);
+        renderFolderSelect(); renderExplorer(); layoutFrames(); saveAll();
+      },
+      active: () => (active ? { folder: active.folder, name: active.name, lang: active.lang } : null),
+      onChange: (fn) => { changeCbs.push(fn); },
+      refresh: scheduleEx,
+      popup: popup,
+      isEmpty: () => cards.length <= 1 && cards.every((c) => { const ls = c.model.getValue().split("\n"), k = LG[c.lang].re && LG[c.lang].re.test((ls[0] || "").trim()) ? 1 : 0; return ls.slice(k).join("").trim() === ""; })
+    };
+
+    const _theme = applyTheme; applyTheme = (k) => { _theme(k); sync(); };
+    const _ui = applyUiLanguage; applyUiLanguage = () => { _ui(); sync(); cards.forEach(updTitle); scheduleEx(); };
+
+    // صوت نقرة لكل الأزرار اللي بتنعمل ديناميكياً (القائمة، الكتل، الإطارات، النوافذ)
+    document.addEventListener("click", (e) => {
+      if (e.target.closest && e.target.closest(".sp-actions button, .ex-edit, .ex-del, .ex-head button, .fr-acts button, #info-pop button")) Sound.click();
+    });
+    sync(); renderExplorer();
+    const wait = setInterval(() => {
+      if (!monacoReady) return;
+      clearInterval(wait);
+      loadAll();
+      if (store("aysar-space") === "1") enter();
+    }, 200);
+  })();
+
+  /* ===== الحفظ على القرص + تصدير zip ===== */
+  (function () {
+    const P = window.AysarProject;
+    if (!P) return;
+    const T = (ar, en) => (ui === "ar" ? ar : en);
+    const hasFS = typeof window.showDirectoryPicker === "function";
+    const EXTLANG = { py: "python", js: "javascript", mjs: "javascript", jsx: "javascript", dart: "dart", ts: "typescript", tsx: "typescript", json: "json", html: "html", htm: "html", css: "css", md: "markdown", markdown: "markdown", txt: "plaintext", yml: "yaml", yaml: "yaml" };
+    const IGNORE = new Set(["node_modules", "__pycache__", "venv", "dist", "build", "target"]);
+    const MAX_FILES = 80, MAX_BYTES = 1000000;
+    const say = (m, good) => { if (typeof setStatus === "function") setStatus(m, good); };
+    const ls = (k, v) => { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) {} return null; };
+    const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+    const hash = (s) => { let x = 2166136261; for (let i = 0; i < s.length; i++) { x ^= s.charCodeAt(i); x = Math.imul(x, 16777619); } return (x >>> 0).toString(36) + ":" + s.length; };
+
+    let dir = null, prefix = "", dirName = "", perm = "none";   // perm: none | ok | ask | readonly
+    let dirty = false, autosave = ls("aysar-autosave") === "1", timer = null, sigTimer = null, busy = false, lastSig = "";
+    let known = new Set(), written = new Map(), ignored = new Set();
+    try { known = new Set(JSON.parse(ls("aysar-disk-known") || "[]")); } catch (e) {}
+    try { written = new Map(JSON.parse(ls("aysar-disk-hash") || "[]")); } catch (e) {}
+    try { ignored = new Set(JSON.parse(ls("aysar-disk-ignored") || "[]")); } catch (e) {}
+
+    // ---------- IndexedDB: نحفظ مقبض المجلد عشان نرجع نتصل فيه بعد إعادة التحميل ----------
+    const idb = (fn) => new Promise((res) => {
+      try {
+        const r = indexedDB.open("aysar", 1);
+        r.onupgradeneeded = () => r.result.createObjectStore("kv");
+        r.onerror = () => res(null);
+        r.onsuccess = () => { try { fn(r.result.transaction("kv", "readwrite").objectStore("kv"), res); } catch (e) { res(null); } };
+      } catch (e) { res(null); }
+    });
+    const idbSet = (k, v) => idb((s, res) => { const q = s.put(v, k); q.onsuccess = () => res(true); q.onerror = () => res(null); });
+    const idbGet = (k) => idb((s, res) => { const q = s.get(k); q.onsuccess = () => res(q.result || null); q.onerror = () => res(null); });
+
+    const inPrefix = (f) => !prefix || f === prefix || f.startsWith(prefix + "/");
+    const relFolder = (f) => (prefix ? (f === prefix ? "" : f.slice(prefix.length + 1)) : f);
+    const relPath = (f, name) => (relFolder(f) ? relFolder(f) + "/" : "") + name;
+    const refresh = () => P.refresh();
+    const persist = () => {
+      ls("aysar-disk", JSON.stringify({ name: dirName, prefix: prefix }));
+      ls("aysar-disk-known", JSON.stringify(Array.from(known)));
+      ls("aysar-disk-hash", JSON.stringify(Array.from(written.entries())));
+      ls("aysar-disk-ignored", JSON.stringify(Array.from(ignored)));
+    };
+    const signature = () => { const s = P.snapshot(); return hash(s.folders.join("|") + "#" + s.files.map((f) => f.folder + "/" + f.name + "=" + hash(f.code)).join("|")); };
+
+    async function dirAt(rel) {
+      let d = dir;
+      for (const seg of rel.split("/").filter(Boolean)) d = await d.getDirectoryHandle(seg, { create: true });
+      return d;
+    }
+    async function ensurePerm(ask) {
+      if (!dir) return false;
+      const o = { mode: "readwrite" };
+      try {
+        if ((await dir.queryPermission(o)) === "granted") return true;
+        if (ask && (await dir.requestPermission(o)) === "granted") return true;
+      } catch (e) {}
+      return false;
+    }
+
+    // ---------- قراءة مجلد ----------
+    async function readDir(handle, base, out, st) {
+      for await (const [name, hd] of handle.entries()) {
+        if (hd.kind === "directory") {
+          if (IGNORE.has(name) || name.startsWith(".")) continue;
+          out.folders.push(base + "/" + name);
+          await readDir(hd, base + "/" + name, out, st);
+        } else {
+          const lang = EXTLANG[name.split(".").pop().toLowerCase()];
+          if (!lang) { st.skipped++; continue; }
+          if (out.files.length >= MAX_FILES) { st.truncated = true; continue; }
+          const f = await hd.getFile();
+          if (f.size > MAX_BYTES) { st.skipped++; continue; }
+          out.files.push({ folder: base, name: name, lang: lang, code: await f.text() });
+        }
+      }
+    }
+    const relOf = (f) => relPath(f.folder, f.name);
+    function adopt(out, st, how) {
+      known = new Set(out.files.map(relOf));
+      written = new Map(out.files.map((f) => [relOf(f), hash(f.code)]));
+      P.replace(out);
+      dirty = out.files.length === 0;
+      lastSig = signature(); persist(); refresh();
+      let m = T("تم فتح ", "Opened ") + dirName + " — " + out.files.length + T(" ملف", " files");
+      if (st.skipped) m += T(" · تجاهلت ", " · skipped ") + st.skipped + T(" ملف غير مدعوم أو كبير", " unsupported/large files");
+      if (st.truncated) m += T(" · المجلد أكبر من " + MAX_FILES + " ملف، استوردت أول " + MAX_FILES, " · folder has more than " + MAX_FILES + " files, imported the first " + MAX_FILES);
+      if (how === "readonly") m += T(" · (قراءة فقط: المتصفح ما بيدعم الحفظ على القرص)", " · (read-only: this browser can't save to disk)");
+      say(m, true);
+    }
+    async function importHandle(handle) {
+      say(T("جاري قراءة المجلد...", "Reading folder..."), false);
+      const out = { folders: [handle.name], files: [] }, st = { skipped: 0, truncated: false };
+      await readDir(handle, handle.name, out, st);
+      dir = handle; prefix = handle.name; dirName = handle.name; perm = "ok";
+      await idbSet("dir", handle);
+      adopt(out, st, "disk");
+    }
+
+    // بديل للمتصفحات اللي ما فيها showDirectoryPicker: استيراد للقراءة فقط
+    const fileInput = document.createElement("input");
+    fileInput.type = "file"; fileInput.multiple = true; fileInput.setAttribute("webkitdirectory", ""); fileInput.style.display = "none";
+    document.body.appendChild(fileInput);
+    fileInput.onchange = async () => {
+      const list = Array.from(fileInput.files || []);
+      if (!list.length) return;
+      const root = list[0].webkitRelativePath.split("/")[0];
+      const out = { folders: [root], files: [] }, st = { skipped: 0, truncated: false };
+      for (const f of list) {
+        const parts = f.webkitRelativePath.split("/"), name = parts.pop();
+        if (parts.some((p) => IGNORE.has(p) || p.startsWith("."))) continue;
+        for (let i = 1; i <= parts.length; i++) { const p = parts.slice(0, i).join("/"); if (!out.folders.includes(p)) out.folders.push(p); }
+        const lang = EXTLANG[name.split(".").pop().toLowerCase()];
+        if (!lang || f.size > MAX_BYTES) { st.skipped++; continue; }
+        if (out.files.length >= MAX_FILES) { st.truncated = true; continue; }
+        out.files.push({ folder: parts.join("/"), name: name, lang: lang, code: await f.text() });
+      }
+      dir = null; prefix = root; dirName = root; perm = "readonly";
+      fileInput.value = "";
+      adopt(out, st, "readonly");
+    };
+
+    function openFolder(e) {
+      const go = async () => {
+        if (!hasFS) { fileInput.click(); return; }
+        let handle;
+        try { handle = await window.showDirectoryPicker({ mode: "readwrite" }); } catch (err) { return; }
+        await importHandle(handle);
+      };
+      if (!P.isEmpty()) {
+        P.popup(e.currentTarget, { title: T("فتح مجلد بيستبدل المشروع الحالي. أكمل؟", "Opening a folder replaces the current project. Continue?"), okLabel: T("فتح", "Open"), onSave: () => { go(); } });
+      } else go();
+    }
+
+    // ---------- الحفظ ----------
+    async function saveAs() {
+      let handle;
+      try { handle = await window.showDirectoryPicker({ mode: "readwrite" }); } catch (e) { return; }
+      dir = handle; prefix = ""; dirName = handle.name; perm = "ok"; known = new Set(); written = new Map();
+      await idbSet("dir", handle);
+      await save(null, false);
+    }
+    async function save(anchor, auto) {
+      if (busy) return;
+      if (!hasFS && !(dir && dir.__bridge)) { exportZip(); return; }
+      if (!dir) { await saveAs(); return; }
+      if (!(await ensurePerm(!auto))) { perm = "ask"; refresh(); if (!auto) say(T("ما في صلاحية للكتابة بالمجلد. اضغط «إعادة الاتصال».", "No write permission. Press “Reconnect”."), false); return; }
+      perm = "ok"; busy = true;
+      try {
+        const snap = P.snapshot();
+        const files = snap.files.filter((f) => inPrefix(f.folder));
+        const failed = [], current = new Set();
+        for (const f of snap.folders) { if (inPrefix(f) && relFolder(f)) { try { await dirAt(relFolder(f)); } catch (e) {} } }
+        let wrote = 0;
+        for (const f of files) {
+          const rel = relPath(f.folder, f.name), hs = hash(f.code);
+          current.add(rel);
+          if (written.get(rel) === hs) continue;
+          try {
+            const dh = await dirAt(relFolder(f.folder));
+            const fh = await dh.getFileHandle(f.name, { create: true });
+            const w = await fh.createWritable(); await w.write(f.code); await w.close();
+            written.set(rel, hs); known.add(rel); wrote++;
+          } catch (e) { failed.push(f.name); }
+        }
+        const removed = Array.from(known).filter((p) => !current.has(p));
+        if (removed.length && !auto) {
+          P.popup(anchor || document.body, {
+            title: T(removed.length + " ملف انحذف أو تغيّر اسمه بالمنصة. تحذفه من القرص كمان؟", removed.length + " file(s) were deleted/renamed here. Delete them from disk too?"),
+            okLabel: T("حذف من القرص", "Delete from disk"),
+            onSave: () => { removeFromDisk(removed); },
+            onCancel: () => { removed.forEach((p) => { known.delete(p); written.delete(p); ignored.add(p); }); persist(); }
+          });
+        }
+        dirty = false; lastSig = signature(); persist(); refresh();
+        say(failed.length ? T("تعذّر حفظ: " + failed.join("، "), "Could not save: " + failed.join(", ")) : T("تم الحفظ على القرص (" + wrote + " ملف تغيّر)", "Saved to disk (" + wrote + " changed)"), !failed.length);
+      } finally { busy = false; }
+    }
+    async function removeFromDisk(paths) {
+      for (const p of paths) {
+        try {
+          const parts = p.split("/"), name = parts.pop();
+          const dh = await dirAt(parts.join("/"));
+          await dh.removeEntry(name);
+        } catch (e) {}
+        known.delete(p); written.delete(p);
+      }
+      persist(); refresh();
+    }
+
+    // ---------- تصدير zip (بدون مكتبات) ----------
+    const CRC = (() => { const t = []; for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+    const crc32 = (b) => { let c = 0xffffffff; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0; };
+    function zipBytes(entries) {
+      const enc = new TextEncoder(), parts = [], central = [];
+      const d = new Date(), tm = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1), dt = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+      let off = 0;
+      entries.forEach((e) => {
+        const name = enc.encode(e.path), crc = crc32(e.data), sz = e.data.length;
+        const lh = new DataView(new ArrayBuffer(30));
+        lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+        lh.setUint16(10, tm, true); lh.setUint16(12, dt, true); lh.setUint32(14, crc, true); lh.setUint32(18, sz, true); lh.setUint32(22, sz, true); lh.setUint16(26, name.length, true);
+        parts.push(new Uint8Array(lh.buffer), name, e.data);
+        const ch = new DataView(new ArrayBuffer(46));
+        ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true);
+        ch.setUint16(12, tm, true); ch.setUint16(14, dt, true); ch.setUint32(16, crc, true); ch.setUint32(20, sz, true); ch.setUint32(24, sz, true); ch.setUint16(28, name.length, true);
+        ch.setUint32(42, off, true);
+        central.push(new Uint8Array(ch.buffer), name);
+        off += 30 + name.length + sz;
+      });
+      const cdSize = central.reduce((n, a) => n + a.length, 0);
+      const end = new DataView(new ArrayBuffer(22));
+      end.setUint32(0, 0x06054b50, true); end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true); end.setUint32(12, cdSize, true); end.setUint32(16, off, true);
+      const all = parts.concat(central, [new Uint8Array(end.buffer)]);
+      const out = new Uint8Array(all.reduce((n, a) => n + a.length, 0));
+      let p = 0; all.forEach((a) => { out.set(a, p); p += a.length; });
+      return out;
+    }
+    function exportZip() {
+      const snap = P.snapshot(), enc = new TextEncoder();
+      const entries = snap.folders.slice().sort().map((f) => ({ path: f + "/", data: new Uint8Array(0) }))
+        .concat(snap.files.map((f) => ({ path: f.folder + "/" + f.name, data: enc.encode(f.code) })));
+      const blob = new Blob([zipBytes(entries)], { type: "application/zip" });
+      const root = snap.folders.filter((f) => !f.includes("/"))[0] || "aysar-project";
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = (snap.folders.filter((f) => !f.includes("/")).length === 1 ? root : "aysar-project") + ".zip";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      say(T("تم تصدير المشروع كملف zip (" + snap.files.length + " ملف)", "Exported project as zip (" + snap.files.length + " files)"), true);
+    }
+
+    // ---------- الواجهة داخل المستكشف ----------
+    // مؤشر «غير محفوظ» لكل ملف (بتستخدمه التبويبات)
+    setTimeout(() => { if (window.AysarDisk) { window.AysarDisk.isDirty = () => !!dir && dirty; window.AysarDisk.isLinked = () => !!dir; } if (window.AysarDisk) window.AysarDisk.fileDirty = (f) => !!dir && inPrefix(f.folder) && written.get(relPath(f.folder, f.name)) !== hash(f.code); }, 0);
+
+    function renderBar(box) {
+      const bar = h("div", "disk-bar"), row = h("div", "disk-row");
+      const mk = (txt, title, fn) => { const b = h("button", "", txt); b.title = title; b.onclick = fn; row.appendChild(b); return b; };
+      mk("📂 " + T("فتح مجلد", "Open folder"), T("افتح مجلد من جهازك", "Open a folder from your device"), openFolder);
+      mk("💾 " + T("حفظ", "Save"), T("حفظ على القرص (Ctrl+S)", "Save to disk (Ctrl+S)"), (e) => save(e.currentTarget, false));
+      mk("⬇ zip", T("تصدير المشروع كملف zip", "Export project as a zip file"), exportZip);
+      bar.appendChild(row);
+      const st = h("div", "disk-state");
+      if (perm === "none") st.textContent = T("غير مرتبط بمجلد على جهازك", "Not linked to a folder on your device");
+      else if (perm === "readonly") st.textContent = "📁 " + dirName + " · " + T("قراءة فقط", "read-only");
+      else {
+        st.appendChild(h("span", "", "📁 " + dirName + " · "));
+        if (perm === "ask") {
+          const b = h("button", "", T("إعادة الاتصال", "Reconnect"));
+          b.onclick = async () => { if (await ensurePerm(true)) perm = "ok"; refresh(); };
+          st.appendChild(b);
+        } else st.appendChild(h("span", dirty ? "dirty" : "saved", dirty ? T("● غير محفوظ", "● unsaved") : T("✓ محفوظ", "✓ saved")));
+      }
+      bar.appendChild(st);
+      if (dir && perm === "ok") {
+        const lab = h("label", "disk-auto"), cb = h("input"); cb.type = "checkbox"; cb.checked = autosave;
+        cb.onchange = () => { autosave = cb.checked; ls("aysar-autosave", autosave ? "1" : "0"); if (autosave && dirty) save(null, true); };
+        lab.append(cb, h("span", "", T("حفظ تلقائي", "Auto-save")));
+        bar.appendChild(lab);
+      }
+      box.appendChild(bar);
+    }
+
+    P.onChange(() => {
+      clearTimeout(sigTimer);
+      sigTimer = setTimeout(() => {
+        if (!dir && perm !== "readonly") return;
+        const s = signature();
+        if (s === lastSig) return;
+        lastSig = s; dirty = true; refresh();
+        if (autosave && perm === "ok") { clearTimeout(timer); timer = setTimeout(() => save(null, true), dir && dir.__bridge ? 500 : 1500); }
+      }, 300);
+    });
+    document.addEventListener("keydown", (e) => {
+      if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && (e.key === "s" || e.key === "S")) { e.preventDefault(); save(document.body, false); }
+    }, true);
+
+    // إعادة الاتصال بالمجلد المحفوظ بعد تحديث الصفحة
+    (async () => {
+      let meta = null;
+      try { meta = JSON.parse(ls("aysar-disk") || "null"); } catch (e) {}
+      if (!meta || !hasFS) return;
+      const handle = await idbGet("dir");
+      if (!handle) return;
+      dir = handle; prefix = meta.prefix || ""; dirName = meta.name || handle.name;
+      try { perm = (await handle.queryPermission({ mode: "readwrite" })) === "granted" ? "ok" : "ask"; } catch (e) { perm = "ask"; }
+      lastSig = signature(); refresh();
+    })();
+
+    // ===== واجهة الجسر المحلي (نفس منطق الحفظ، لكن المقبض بيحكي مع السيرفر) =====
+    const bridgeApi = {
+      info: () => ({ attached: !!(dir && dir.__bridge), linked: !!dir, prefix: prefix, name: dirName }),
+      relFor: (folder, name) => relPath(folder, name),
+      attach(handle, name, prefixName) {
+        dir = handle; prefix = prefixName; dirName = name; perm = "ok";
+        if (ls("aysar-autosave") !== "0") { autosave = true; ls("aysar-autosave", "1"); }
+        idbSet("dir", null); lastSig = signature(); dirty = false; persist(); refresh();
+      },
+      async importFrom(handle) {
+        ignored = new Set(); await idbSet("dir", null); await importHandle(handle);
+        if (ls("aysar-autosave") !== "0") { autosave = true; ls("aysar-autosave", "1"); }
+        persist(); refresh();
+      },
+      detach() {
+        dir = null; prefix = ""; dirName = ""; perm = "none";
+        known = new Set(); written = new Map(); ignored = new Set(); dirty = false; lastSig = "";
+        ["aysar-disk", "aysar-disk-known", "aysar-disk-hash", "aysar-disk-ignored"].forEach((k) => { try { localStorage.removeItem(k); } catch (e) {} });
+        idbSet("dir", null); refresh();
+      },
+      async saveNow() {
+        for (let i = 0; i < 40 && busy; i++) await new Promise((r) => setTimeout(r, 50));
+        await save(null, true);
+      },
+      resync(tree) {
+        if (!dir || !dir.__bridge) return;
+        const snap = P.snapshot(), wasDirty = dirty;
+        const local = new Map(snap.files.filter((f) => inPrefix(f.folder)).map((f) => [relPath(f.folder, f.name), f]));
+        const conflicts = [], seen = new Set();
+        let changed = 0;
+        (tree.folders || []).forEach((rf) => { const full = prefix + "/" + rf; if (!snap.folders.includes(full)) { P.addFolder(full); changed++; } });
+        (tree.files || []).forEach((df) => {
+          const rel = df.path, hd = hash(df.code), w = written.get(rel), lf = local.get(rel);
+          seen.add(rel);
+          if (lf) {
+            const hl = hash(lf.code);
+            if (hd === w) return;                                                   // القرص ما تغيّر
+            if (hl === hd) { written.set(rel, hd); known.add(rel); return; }        // نفس المحتوى
+            if (hl === w) { P.updateFile(lf.folder, lf.name, df.code); written.set(rel, hd); changed++; return; }   // تغيّر بـ VS Code فقط
+            conflicts.push({ rel: rel, lf: lf, df: df, hd: hd });                   // تغيّر بالمكانين
+          } else if (!ignored.has(rel) && !(known.has(rel) && w !== undefined)) {   // ملف جديد من برّا
+            const i = rel.lastIndexOf("/"), name = rel.slice(i + 1), sub = i < 0 ? "" : rel.slice(0, i);
+            const lang = EXTLANG[name.split(".").pop().toLowerCase()];
+            if (!lang) return;
+            P.addFile({ folder: sub ? prefix + "/" + sub : prefix, name: name, lang: lang, code: df.code });
+            written.set(rel, hd); known.add(rel); changed++;
+          }
+        });
+        local.forEach((lf, rel) => {                                                 // انحذف من القرص
+          if (seen.has(rel) || !known.has(rel)) return;
+          if (hash(lf.code) === written.get(rel)) { P.removeFile(lf.folder, lf.name); changed++; }
+          known.delete(rel); written.delete(rel);
+        });
+        if (!wasDirty && !conflicts.length) { lastSig = signature(); dirty = false; }
+        persist(); refresh();
+        if (changed) say(T("تم تحديث " + changed + " عنصر من القرص (VS Code)", "Updated " + changed + " item(s) from disk (VS Code)"), true);
+        if (conflicts.length) {
+          P.popup(document.body, {
+            title: T(conflicts.length + " ملف تغيّر بـ VS Code وبالموقع معاً: " + conflicts.map((c) => c.lf.name).join("، ") + ". أي نسخة تعتمد؟",
+                     conflicts.length + " file(s) changed in both VS Code and here: " + conflicts.map((c) => c.lf.name).join(", ") + ". Which version to keep?"),
+            okLabel: T("اعتمد نسخة VS Code", "Use VS Code version"),
+            onSave: () => {
+              conflicts.forEach((c) => { P.updateFile(c.lf.folder, c.lf.name, c.df.code); written.set(c.rel, c.hd); });
+              lastSig = signature(); dirty = false; persist(); refresh();
+            },
+            onCancel: () => {   // بنحتفظ بنسختك: بتنكتب على القرص عند الحفظ
+              conflicts.forEach((c) => { written.set(c.rel, c.hd); });
+              dirty = true; persist(); refresh();
+              if (autosave) save(null, true);
+            }
+          });
+        }
+      }
+    };
+    window.AysarDisk = { renderBar: renderBar, save: save, exportZip: exportZip, zipBytes: zipBytes, openFolder: openFolder, bridge: bridgeApi };
+
+  })();
+
+  /* زر الفضاء بشريط الأنشطة */
+  (function () {
+    const b = document.getElementById("act-space");
+    if (b) b.addEventListener("click", () => { if (window.__toggleSpace) window.__toggleSpace(); });
+  })();
+
+  /* ===== الجسر المحلي: مزامنة حيّة مع VS Code + تشغيل الكود + فتح VS Code ===== */
+  (function () {
+    const B = window.__AYSAR_BRIDGE, D = window.AysarDisk, P = window.AysarProject;
+    if (!B || !D || !D.bridge || !P) return;
+    const T = (ar, en) => (ui === "ar" ? ar : en);
+    const say = (m, good) => { if (typeof setStatus === "function") setStatus(m, good); };
+    const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+    const join = (a, b) => (a ? a + "/" + b : b);
+    const st = { root: "", name: "", online: false, running: false, runId: null };
+
+    async function api(path, method, body) {
+      const r = await fetch("/api/bridge/" + path, { method: method || "GET", headers: { "x-aysar-token": B.token, "content-type": "application/json" }, body: body ? JSON.stringify(body) : undefined });
+      let j = {};
+      try { j = await r.json(); } catch (e) {}
+      if (!r.ok) throw new Error(j.error || ("HTTP " + r.status));
+      return j;
+    }
+
+    // مقبض مجلد/ملف بنفس واجهة File System Access، لكن بيحكي مع السيرفر (عشان نعيد استخدام منطق الحفظ والاستيراد)
+    function mkDir(rel, name) {
+      return {
+        __bridge: true, kind: "directory", name: name,
+        async *entries() {
+          const j = await api("ls?path=" + encodeURIComponent(rel));
+          for (const e of j.entries) yield [e.name, e.kind === "directory" ? mkDir(join(rel, e.name), e.name) : mkFile(join(rel, e.name), e.name)];
+        },
+        async getDirectoryHandle(n, o) {
+          const p = join(rel, n);
+          if (o && o.create) await api("mkdir", "POST", { path: p });
+          return mkDir(p, n);
+        },
+        async getFileHandle(n) { return mkFile(join(rel, n), n); },
+        async removeEntry(n) { await api("delete", "POST", { path: join(rel, n) }); },
+        async queryPermission() { return "granted"; },
+        async requestPermission() { return "granted"; }
+      };
+    }
+    function mkFile(rel, name) {
+      return {
+        __bridge: true, kind: "file", name: name,
+        async getFile() { const j = await api("read?path=" + encodeURIComponent(rel)); return { size: j.size, text: async () => j.content }; },
+        async createWritable() {
+          let buf = "";
+          return { async write(s) { buf += s; }, async close() { await api("write", "POST", { path: rel, content: buf }); } };
+        }
+      };
+    }
+
+    // ---------- المزامنة ----------
+    let rs = false, again = false, rt = null;
+    async function resync() {
+      if (!D.bridge.info().attached) return;
+      if (rs) { again = true; return; }
+      rs = true;
+      try { D.bridge.resync(await api("tree")); } catch (e) {} finally { rs = false; if (again) { again = false; resync(); } }
+    }
+    let es = null;
+    function connectEvents() {
+      if (es) es.close();
+      es = new EventSource("/api/bridge/events?t=" + encodeURIComponent(B.token));
+      es.onopen = () => { st.online = true; P.refresh(); loadState(); };
+      es.onerror = () => { st.online = false; P.refresh(); };
+      es.onmessage = (m) => {
+        let e; try { e = JSON.parse(m.data); } catch (x) { return; }
+        if (e.type === "changed") { clearTimeout(rt); rt = setTimeout(resync, 120); }
+        else if (e.type === "root") loadState();
+        else if (e.type.indexOf("run-") === 0) runEvent(e);
+      };
+    }
+    async function loadState() {
+      try {
+        const s = await api("state");
+        st.root = s.root; st.name = s.name; st.online = true;
+        tryAttach();
+      } catch (e) { st.online = false; }
+      P.refresh();
+    }
+    function tryAttach() {
+      if (!st.root || D.bridge.info().attached) return;
+      let meta = null;
+      try { meta = JSON.parse(localStorage.getItem("aysar-disk") || "null"); } catch (e) {}
+      if (meta && meta.prefix === st.name && P.snapshot().folders.includes(st.name)) {
+        D.bridge.attach(mkDir("", st.name), st.name, st.name);
+        resync();
+      }
+    }
+
+    // ---------- اختيار المجلد ----------
+    function withConfirm(anchor, go) {
+      if (!P.isEmpty()) P.popup(anchor, { title: T("اختيار مجلد بيستبدل المشروع الحالي. أكمل؟", "Choosing a folder replaces the current project. Continue?"), okLabel: T("اختيار", "Choose"), onSave: () => { go(); } });
+      else go();
+    }
+    async function adopt(j) {
+      st.root = j.root; st.name = j.name;
+      await D.bridge.importFrom(mkDir("", j.name));
+      P.refresh();
+    }
+    function pickFolder(anchor) {
+      withConfirm(anchor, async () => {
+        say(T("اختر مجلد المشروع من النافذة (ممكن تظهر خلف المتصفح)...", "Choose the project folder in the window (it may appear behind the browser)..."), false);
+        try {
+          const j = await api("pick-folder", "POST");
+          if (j.cancelled) { say(T("تم الإلغاء.", "Cancelled."), false); return; }
+          await adopt(j);
+        } catch (e) { say(T("تعذّر اختيار المجلد: ", "Could not choose the folder: ") + e.message, false); }
+      });
+    }
+    function typePath(anchor) {
+      P.popup(anchor, {
+        title: T("اكتب مسار مجلد المشروع", "Enter the project folder path"),
+        fields: [{ label: T("المسار الكامل", "Full path"), value: st.root, ltr: true }],
+        onSave: (v) => {
+          if (!v[0]) return T("المسار مطلوب.", "Path is required.");
+          // بعد ما تنسكر نافذة المسار (وإلا بتنسكر نافذة التأكيد معها)
+          setTimeout(() => withConfirm(anchor, async () => {
+            try { await adopt(await api("set-root", "POST", { path: v[0] })); } catch (e) { say(e.message, false); }
+          }), 0);
+        }
+      });
+    }
+
+    // ---------- لوحة المخرجات ----------
+    const panel = h("div"); panel.id = "run-panel"; panel.style.display = "none";
+    const head = h("div", "rp-head"), title = h("b", "rp-title"), acts = h("span", "rp-acts");
+    const bStop = h("button", "", ""), bClear = h("button", "", ""), bClose = h("button", "", "✕");
+    acts.append(bStop, bClear, bClose); head.append(title, acts);
+    const out = h("pre", "rp-out");
+    const inRow = h("div", "rp-in"), inp = h("input", "rp-input"), bSend = h("button", "", "");
+    inRow.append(inp, bSend); panel.append(head, out, inRow);
+    document.body.appendChild(panel);
+    const labels = () => { bStop.textContent = "■ " + T("إيقاف", "Stop"); bClear.textContent = T("مسح", "Clear"); bSend.textContent = T("إرسال", "Send"); inp.placeholder = T("اكتب مدخلاً لـ input() واضغط Enter", "Type input for input() and press Enter"); };
+    labels();
+    const append = (text, cls) => {
+      const s = h("span", cls || "", text); out.appendChild(s);
+      while (out.childNodes.length > 2000) out.removeChild(out.firstChild);
+      out.scrollTop = out.scrollHeight;
+    };
+    function runEvent(e) {
+      if (e.type === "run-start") { panel.style.display = "flex"; out.textContent = ""; title.textContent = "▶ " + e.cmd; st.runId = e.id; st.running = true; labels(); }
+      else if (e.type === "run-out") append(e.text, e.stream === "stderr" ? "rp-err" : "");
+      else if (e.type === "run-end") {
+        st.running = false;
+        const why = e.killed === "timeout" ? T("توقّف: انتهت المهلة", "stopped: timeout") : e.killed ? T("تم الإيقاف", "stopped") : T("انتهى (رمز " + e.code + ")", "finished (code " + e.code + ")");
+        append("\n— " + why + " · " + e.ms + "ms —\n", "rp-meta");
+      }
+    }
+    function sendInput() {
+      if (!st.running) return;
+      const t = inp.value; inp.value = "";
+      append(t + "\n", "rp-meta");
+      api("stdin", "POST", { id: st.runId, text: t }).catch(() => {});
+    }
+    inp.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); sendInput(); } });
+    bSend.onclick = sendInput;
+    bStop.onclick = () => api("stop", "POST").catch(() => {});
+    bClear.onclick = () => { out.textContent = ""; };
+    bClose.onclick = () => { panel.style.display = "none"; };
+
+    async function run() {
+      const a = P.active();
+      if (!a) return;
+      if (!st.online) { say(T("الجسر مش متصل. شغّل node server.js", "The bridge is offline. Run node server.js"), false); return; }
+      if (!D.bridge.info().attached) { say(T("اربط مجلد المشروع بالجسر أولاً (📁 اختيار مجلد).", "Link a project folder to the bridge first (📁 Choose folder)."), false); return; }
+      if (!/^(python|javascript|dart)$/.test(a.lang)) { say(T("هذا النوع من الملفات ما بينشغّل (بايثون وجافاسكربت ودارت فقط).", "This file type can't be run (Python, JavaScript and Dart only)."), false); return; }
+      say(T("جاري الحفظ والتشغيل...", "Saving and running..."), false);
+      try {
+        await D.bridge.saveNow();
+        await api("run", "POST", { path: D.bridge.relFor(a.folder, a.name) });
+      } catch (e) { say(e.message, false); }
+    }
+    function openVSCode() {
+      const a = P.active(), attached = D.bridge.info().attached;
+      api("open-vscode", "POST", { path: a && attached ? D.bridge.relFor(a.folder, a.name) : "" })
+        .then(() => say(T("تم فتح VS Code.", "Opened VS Code."), true))
+        .catch((e) => say(e.message, false));
+    }
+
+    // ---------- إغلاق المشروع ----------
+    function closeProject(anchor) {
+      const linked = D.bridge.info().linked;
+      P.popup(anchor, {
+        title: linked ? T("إغلاق المشروع؟ ملفاتك على القرص ما بتنمسح.", "Close the project? Your files on disk are not deleted.")
+                      : T("إغلاق المشروع؟ هذا المشروع مش مرتبط بمجلد، فبينمسح من المنصة (صدّر zip أولاً لو بدك نسخة).", "Close the project? It isn't linked to a folder, so it will be removed from the platform (export a zip first if you want a copy)."),
+        okLabel: T("إغلاق", "Close"),
+        onSave: () => { doClose(); }
+      });
+    }
+    async function doClose() {
+      try { if (D.bridge.info().linked) await D.bridge.saveNow(); } catch (e) {}
+      try { await api("clear-root", "POST"); } catch (e) {}
+      panel.style.display = "none"; out.textContent = ""; st.running = false;
+      D.bridge.detach();
+      st.root = ""; st.name = "";
+      const lg = document.getElementById("lang"); if (lg) lg.value = "python";
+      P.replace({ folders: ["مشروعي"], files: [] });
+      P.refresh();
+      say(T("تم إغلاق المشروع. اختر مشروعاً جديداً من 📁 اختيار مجلد.", "Project closed. Choose a new one with 📁 Choose folder."), true);
+    }
+
+    // ---------- الواجهة داخل المستكشف ----------
+    function renderBridge(box) {
+      const bar = h("div", "disk-bar");
+      bar.appendChild(h("div", "", "🔗 " + T("الجسر المحلي (VS Code)", "Local bridge (VS Code)")));
+      const s = h("div", "disk-state");
+      if (!st.online) s.appendChild(h("span", "dirty", T("🔴 غير متصل: شغّل node server.js", "🔴 Offline: run node server.js")));
+      else if (!st.root) s.textContent = T("🟢 متصل · ما في مجلد مشروع", "🟢 Online · no project folder");
+      else s.textContent = "🟢 " + st.name + (D.bridge.info().attached ? T(" · مزامنة حيّة ⚡", " · live sync ⚡") : T(" · غير مرتبط (اضغط اختيار مجلد)", " · not linked (choose folder)"));
+      bar.appendChild(s);
+      const row = h("div", "disk-row");
+      const mk = (txt, ttl, fn) => { const b = h("button", "", txt); b.title = ttl; b.onclick = fn; row.appendChild(b); };
+      mk("📁 " + T("اختيار مجلد", "Choose folder"), T("نافذة اختيار المجلد (ويندوز)", "Folder picker window (Windows)"), (e) => pickFolder(e.currentTarget));
+      mk("✏", T("اكتب مسار المجلد", "Type the folder path"), (e) => typePath(e.currentTarget));
+      mk("↻", T("مزامنة الآن", "Sync now"), () => resync());
+      mk("VS Code", T("افتح المشروع بـ VS Code", "Open the project in VS Code"), openVSCode);
+      mk("▶ " + T("تشغيل", "Run"), T("حفظ وتشغيل الملف الحالي على جهازك", "Save and run the current file on your computer"), run);
+      mk("✖ " + T("إغلاق المشروع", "Close project"), T("فضّي المنصة واختر مشروعاً ثانياً (ملفاتك على القرص ما بتنمسح)", "Empty the platform and choose another project (files on disk are kept)"), (e) => closeProject(e.currentTarget));
+      bar.appendChild(row);
+      box.appendChild(bar);
+    }
+    const origBar = D.renderBar;
+    D.renderBar = (box) => { origBar(box); renderBridge(box); };
+
+    // زر ▶ بشريط المحرر (كان رسالة شكلية)
+    const oldRun = document.getElementById("btn-run-code");
+    if (oldRun) { const nb = oldRun.cloneNode(true); oldRun.replaceWith(nb); nb.title = "تشغيل الملف الحالي (Run)"; nb.addEventListener("click", run); }
+
+    window.AysarBridge = { run: run, resync: resync, state: st, mkDir: mkDir, pick: pickFolder, openVSCode: openVSCode, closeProject: (typeof closeProject === "function" ? closeProject : null) };
+    connectEvents();
+    loadState();
+  })();
+
+  /* ===== تبويبات حقيقية ===== */
+  (function () {
+    const P = window.AysarProject, D = window.AysarDisk;
+    const bar = document.querySelector(".editor-tabs");
+    if (!P || !bar) return;
+    const T = (ar, en) => (ui === "ar" ? ar : en);
+    const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+    const KEYN = "aysar-tabs";
+    const DOT = { python: "#3b82f6", javascript: "#eab308", typescript: "#60a5fa", dart: "#14b8a6", html: "#f97316", css: "#a855f7", markdown: "#94a3b8", json: "#84cc16", yaml: "#ef4444", plaintext: "#9ca3af" };
+    const key = (f) => f.folder + "/" + f.name;
+    let tabs = [], want = [], restored = false, raf = 0;
+    try { want = JSON.parse(localStorage.getItem(KEYN) || "[]"); } catch (e) {}
+
+    function sync() {
+      raf = 0;
+      const files = P.files();
+      if (!files.length) return;
+      const byId = new Map(files.map((f) => [f.id, f])), aid = P.activeId();
+      if (!restored) {   // أول مرة: نرجّع التبويبات اللي كانت مفتوحة
+        restored = true;
+        tabs = want.map((k) => files.find((f) => key(f) === k)).filter(Boolean).map((f) => f.id);
+      }
+      tabs = tabs.filter((id) => byId.has(id));
+      if (aid != null && !tabs.includes(aid)) tabs.push(aid);
+      if (!tabs.length) tabs.push(files[0].id);
+      render(byId, aid);
+      try { localStorage.setItem(KEYN, JSON.stringify(tabs.map((id) => key(byId.get(id))))); } catch (e) {}
+    }
+    function render(byId, aid) {
+      bar.textContent = "";
+      tabs.forEach((id) => {
+        const f = byId.get(id), el = h("div", "editor-tab" + (id === aid ? " active" : ""));
+        el.title = f.folder + "/" + f.name;
+        const dot = h("span", "editor-tab-dot"); dot.style.background = DOT[f.lang] || "var(--accent)";
+        const dirty = !!(D && D.fileDirty && D.fileDirty(f));
+        const x = h("button", "tab-x" + (dirty ? " dirty" : ""), dirty ? "●" : "✕");
+        x.title = dirty ? T("غير محفوظ على القرص", "Unsaved on disk") + " · " + T("إغلاق", "Close") : T("إغلاق", "Close");
+        el.append(dot, h("span", "tab-name", f.name), x);
+        el.onclick = () => P.activate(id);
+        el.onauxclick = (e) => { if (e.button === 1) { e.preventDefault(); closeTab(id); } };
+        x.onclick = (e) => { e.stopPropagation(); closeTab(id); };
+        bar.appendChild(el);
+      });
+      const a = bar.querySelector(".editor-tab.active");
+      if (a && a.scrollIntoView) a.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+    const schedule = () => { if (!raf) raf = requestAnimationFrame(sync); };
+
+    function closeTab(id) {
+      if (tabs.length <= 1) return;   // دايماً بيضل تبويب واحد على الأقل
+      const i = tabs.indexOf(id), aid = P.activeId();
+      tabs = tabs.filter((t) => t !== id);
+      if (id === aid) P.activate(tabs[Math.min(i, tabs.length - 1)]); else schedule();
+    }
+    function closeOthers() { const aid = P.activeId(); tabs = tabs.filter((t) => t === aid); schedule(); }
+
+    P.onChange(schedule);
+    if (D && D.renderBar) { const ob = D.renderBar; D.renderBar = (box) => { ob(box); schedule(); }; }   // بعد الحفظ: نحدّث مؤشر «غير محفوظ»
+    new MutationObserver(schedule).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+    window.AysarTabs = { close: closeTab, closeActive: () => closeTab(P.activeId()), closeOthers: closeOthers, list: () => tabs.slice() };
+    schedule();
+  })();
+
+  /* ===== بحث بكل الملفات (Ctrl+Shift+F) ===== */
+  (function () {
+    const P = window.AysarProject;
+    const work = document.getElementById("work"), explorer = document.getElementById("explorer");
+    if (!P || !work || !explorer) return;
+    const T = (ar, en) => (ui === "ar" ? ar : en);
+    const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+    const panel = h("aside"); panel.id = "search-panel"; panel.style.display = "none";
+    work.insertBefore(panel, explorer.nextSibling);
+
+    let caseOn = false, regexOn = false, replOn = false, timer = null, last = null;
+    const head = h("div", "ex-head"), title = h("b");
+    head.appendChild(title);
+    const row1 = h("div", "sr-row"), qIn = h("input", "sr-input");
+    const bCase = h("button", "sr-tog", "Aa"), bRe = h("button", "sr-tog", ".*"), bRep = h("button", "sr-tog", "⇄");
+    row1.append(qIn, bCase, bRe, bRep);
+    const row2 = h("div", "sr-row"), rIn = h("input", "sr-input"), bAll = h("button", "sr-all");
+    row2.append(rIn, bAll); row2.style.display = "none";
+    const sum = h("div", "sr-sum"), res = h("div", "sr-results");
+    // نطاق البحث: كل المشروع أو مجلد معيّن (مع مجلداته الفرعية)
+    const rowScope = h("div", "sr-row"), scopeSel = h("select", "sr-scope");
+    rowScope.appendChild(scopeSel);
+    let scope = "";
+    const inScope = (f) => !scope || f.folder === scope || f.folder.indexOf(scope + "/") === 0;
+    function refreshScope() {
+      const fl = P.folders().slice().sort();
+      scopeSel.textContent = "";
+      const o0 = h("option", "", T("النطاق: كل المشروع", "Scope: whole project")); o0.value = ""; scopeSel.appendChild(o0);
+      fl.forEach((f) => { const o = h("option", "", T("مجلد: ", "Folder: ") + f.replace(/\//g, " / ")); o.value = f; scopeSel.appendChild(o); });
+      if (scope && fl.indexOf(scope) < 0) scope = "";
+      scopeSel.value = scope;
+    }
+    scopeSel.onchange = () => { scope = scopeSel.value; run(); };
+    // تلوين النتائج داخل الملفات المفتوحة (بالمحرر التقليدي وبالفضاء)
+    function clearHits() { if (P.clearHighlights) P.clearHighlights(); }
+    function applyHits(groups) { clearHits(); groups.forEach((g) => P.highlight(g.f.id, g.ms.map((m) => ({ line: m.line, c1: m.c1, c2: m.c2 })))); }
+    refreshScope();
+    panel.append(head, row1, row2, sum, res);   // (نطاق البحث بيتضاف تحت)
+    const labels = () => {
+      title.textContent = T("بحث بكل الملفات", "SEARCH");
+      qIn.placeholder = T("ابحث...", "Search..."); rIn.placeholder = T("استبدال بـ...", "Replace with...");
+      bAll.textContent = T("استبدال الكل", "Replace all");
+      bCase.title = T("مطابقة حالة الأحرف", "Match case"); bRe.title = T("تعبير نمطي (Regex)", "Regular expression"); bRep.title = T("إظهار الاستبدال", "Toggle replace");
+    };
+    panel.insertBefore(rowScope, sum);
+    labels();
+    new MutationObserver(labels).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+
+    function compile() {
+      const q = qIn.value;
+      if (!q) return null;
+      const src = regexOn ? q : q.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
+      try { return { re: new RegExp(src, caseOn ? "g" : "gi"), src: src }; } catch (e) { return { error: e.message }; }
+    }
+    function run() {
+      timer = null; res.textContent = ""; last = null;
+      const c = compile();
+      if (!c) { sum.textContent = ""; clearHits(); return; }
+      if (c.error) { sum.textContent = T("تعبير نمطي غير صالح: ", "Invalid regex: ") + c.error; clearHits(); return; }
+      const groups = []; let total = 0, capped = false;
+      for (const f of P.files().filter(inScope)) {
+        const lines = f.code.split(/\r?\n/), ms = [];
+        for (let i = 0; i < lines.length && !capped; i++) {
+          c.re.lastIndex = 0;
+          let m;
+          while ((m = c.re.exec(lines[i])) !== null) {
+            if (m[0].length === 0) { c.re.lastIndex++; continue; }
+            ms.push({ line: i + 1, c1: m.index + 1, c2: m.index + 1 + m[0].length, text: lines[i], idx: m.index, len: m[0].length });
+            if (++total >= 500) { capped = true; break; }
+          }
+        }
+        if (ms.length) groups.push({ f: f, ms: ms });
+        if (capped) break;
+      }
+      last = { c: c, groups: groups, total: total };
+      applyHits(groups);
+      sum.textContent = total ? T(total + " نتيجة في " + groups.length + " ملف" + (capped ? " (أول 500)" : ""), total + " result(s) in " + groups.length + " file(s)" + (capped ? " (first 500)" : "")) : T("ما في نتائج.", "No results.");
+      groups.forEach((g) => {
+        const fh = h("div", "sr-file", g.f.folder + "/" + g.f.name + "  (" + g.ms.length + ")");
+        res.appendChild(fh);
+        g.ms.forEach((m) => {
+          const r = h("div", "sr-match"), st = Math.max(0, m.idx - 30);
+          r.appendChild(h("span", "sr-ln", String(m.line)));
+          const t = h("span", "sr-txt");
+          t.append((st > 0 ? "…" : "") + m.text.slice(st, m.idx).replace(/^\s+/, ""));
+          t.appendChild(h("mark", "", m.text.slice(m.idx, m.idx + m.len)));
+          t.append(m.text.slice(m.idx + m.len, m.idx + m.len + 60));
+          r.appendChild(t);
+          r.onclick = () => P.reveal(g.f.id, m.line, m.c1, m.c2);
+          res.appendChild(r);
+        });
+      });
+    }
+    function replaceAll(anchor) {
+      if (!last || !last.total) return;
+      const repl = rIn.value, snap = last;
+      P.popup(anchor, {
+        title: T("استبدال " + snap.total + " نتيجة في " + snap.groups.length + " ملف؟", "Replace " + snap.total + " match(es) in " + snap.groups.length + " file(s)?"),
+        okLabel: T("استبدال الكل", "Replace all"),
+        onSave: () => {
+          const single = new RegExp(snap.c.src, caseOn ? "" : "i");
+          snap.groups.forEach((g) => P.applyEdits(g.f.id, g.ms.map((m) => ({ line: m.line, c1: m.c1, c2: m.c2, text: regexOn ? m.text.slice(m.idx, m.idx + m.len).replace(single, repl) : repl }))));
+          setTimeout(run, 50);
+        }
+      });
+    }
+    const later = () => { clearTimeout(timer); timer = setTimeout(run, 250); };
+    qIn.addEventListener("input", later);
+    qIn.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); clearTimeout(timer); run(); } });
+    rIn.addEventListener("keydown", (e) => { e.stopPropagation(); });
+    const tog = (b, get, set) => { b.onclick = () => { set(!get()); b.setAttribute("aria-pressed", String(get())); run(); }; };
+    tog(bCase, () => caseOn, (v) => { caseOn = v; });
+    tog(bRe, () => regexOn, (v) => { regexOn = v; });
+    bRep.onclick = () => { replOn = !replOn; bRep.setAttribute("aria-pressed", String(replOn)); row2.style.display = replOn ? "" : "none"; };
+    bAll.onclick = (e) => replaceAll(e.currentTarget);
+
+    // ---- تبديل لوحة الشريط الجانبي (المستكشف / البحث) من شريط الأنشطة ----
+    let view = "explorer", open = true;
+    let aE = document.getElementById("act-explorer"), aS = document.getElementById("act-search");
+    const layout = () => { if (typeof editor !== "undefined" && editor && editor.layout) setTimeout(() => editor.layout(), 250); };
+    function applyView() {
+      explorer.classList.toggle("collapsed", !(open && view === "explorer"));
+      panel.style.display = open && view === "search" ? "" : "none";
+      if (!(open && view === "search")) clearHits();
+      if (aE) aE.classList.toggle("active", open && view === "explorer");
+      if (aS) aS.classList.toggle("active", open && view === "search");
+      layout();
+    }
+    function setView(v) { view = v; open = true; applyView(); }
+    function openSearch() {
+      refreshScope();
+      setView("search");
+      qIn.focus(); qIn.select();
+      if (qIn.value) run();
+    }
+    const rewire = (btn, v) => {
+      if (!btn) return null;
+      const nb = btn.cloneNode(true);
+      btn.replaceWith(nb);
+      nb.addEventListener("click", () => {
+        if (typeof Sound !== "undefined") Sound.click();
+        if (open && view === v) open = false; else { view = v; open = true; }
+        applyView();
+        if (v === "search" && open) { qIn.focus(); qIn.select(); }
+      });
+      return nb;
+    };
+    aE = rewire(aE, "explorer"); aS = rewire(aS, "search");   // نحدّث المراجع للأزرار الجديدة
+    function openIn(folder) { refreshScope(); scope = folder || ""; scopeSel.value = scope; setView("search"); qIn.focus(); qIn.select(); if (qIn.value) run(); }
+    window.AysarSearch = { open: openSearch, openIn: openIn, setView: setView, run: run, toggleExplorer: () => { if (open && view === "explorer") { open = false; applyView(); } else setView("explorer"); } };
+  })();
+
+  /* ===== لوحة الأوامر (Ctrl+Shift+P) والفتح السريع للملفات (Ctrl+P) ===== */
+  (function () {
+    const P = window.AysarProject, D = window.AysarDisk;
+    if (!P) return;
+    const T = (ar, en) => (ui === "ar" ? ar : en);
+    const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+    const clickId = (id) => { const b = document.getElementById(id); if (b) b.click(); };
+    let bg = null, input = null, list = null, items = [], sel = 0;
+
+    function commands() {
+      const B = window.AysarBridge, S = window.AysarSearch, TB = window.AysarTabs, out = [];
+      const add = (ar, en, run, when) => { if (when === undefined || when) out.push({ l: T(ar, en), run: run }); };
+      add("الفضاء: تبديل بين المحرر التقليدي والفضاء", "Space: toggle classic editor / space", () => P.toggleSpace(), !!P.toggleSpace);
+      add("ملف: ملف جديد", "File: New file", () => P.newFile());
+      add("ملف: مجلد جديد", "File: New folder", () => P.newFolder());
+      add("ملف: حفظ على القرص", "File: Save to disk", () => D && D.save(document.body, false), !!D);
+      add("ملف: تصدير المشروع كـ zip", "File: Export project as zip", () => D && D.exportZip(), !!D);
+      add("ملف: فتح مجلد (صلاحية المتصفح)", "File: Open folder (browser permission)", () => D && D.openFolder({ currentTarget: document.body }), !!D);
+      add("بحث: بحث بكل الملفات", "Search: Find in all files", () => S && S.open(), !!S);
+      add("بحث: بحث داخل الملف الحالي (Ctrl+F)", "Search: find in current file (Ctrl+F)", () => P.find(false), !!P.find);
+      add("بحث: استبدال داخل الملف الحالي (Ctrl+H)", "Search: replace in current file (Ctrl+H)", () => P.find(true), !!P.find);
+      add("بحث: بحث بالمجلد الحالي", "Search: find in current folder", () => S && S.openIn(P.activeFolder()), !!(S && S.openIn));
+      add("المستكشف: إظهار أو إخفاء", "Explorer: toggle", () => S && S.toggleExplorer(), !!S);
+      add("التبويبات: إغلاق التبويب الحالي", "Tabs: close current tab", () => TB && TB.closeActive(), !!TB);
+      add("التبويبات: إغلاق باقي التبويبات", "Tabs: close other tabs", () => TB && TB.closeOthers(), !!TB);
+      add("تشغيل: شغّل الملف الحالي", "Run: run current file", () => B && B.run(), !!(B && B.run));
+      add("الجسر: اختيار مجلد المشروع", "Bridge: choose project folder", () => B && B.pick && B.pick(document.body), !!(B && B.pick));
+      add("الجسر: فتح المشروع بـ VS Code", "Bridge: open project in VS Code", () => B && B.openVSCode && B.openVSCode(), !!(B && B.openVSCode));
+      add("الجسر: مزامنة الآن", "Bridge: sync now", () => B && B.resync(), !!(B && B.resync));
+      add("المشروع: إغلاق المشروع", "Project: close project", () => B && B.closeProject && B.closeProject(document.body), !!(B && B.closeProject));
+      add("الذكاء الاصطناعي: حوّل السطر الحالي", "AI: convert current line", () => typeof convertCurrentLine === "function" && convertCurrentLine());
+      add("الواجهة: تبديل اللغة (عربي / English)", "UI: switch language (Arabic / English)", () => clickId("ui-lang"));
+      add("الواجهة: تشغيل أو إيقاف الأصوات", "UI: toggle sounds", () => clickId("sound"));
+      add("الواجهة: تشغيل أو إيقاف الموسيقى", "UI: toggle music", () => clickId("music"));
+      add("الواجهة: تشغيل أو إيقاف قاعدة الوصف", "UI: toggle description rule", () => clickId("btn-rule"));
+      add("الواجهة: تسميك خط التعليقات", "UI: toggle bold comments", () => clickId("font-bold"));
+      add("عرض: إعادة تحميل الصفحة", "View: reload page", () => location.reload());
+      if (typeof THEMES_CONFIG !== "undefined" && typeof applyTheme === "function") {
+        Object.keys(THEMES_CONFIG).forEach((k) => add("المظهر: " + THEMES_CONFIG[k].nameAr, "Theme: " + THEMES_CONFIG[k].nameEn, () => applyTheme(k)));
+      }
+      const lg = document.getElementById("lang");
+      if (lg) Array.from(lg.options).forEach((o) => add("لغة الملف: " + o.textContent, "File language: " + o.textContent, () => { lg.value = o.value; lg.dispatchEvent(new Event("change", { bubbles: true })); }));
+      return out;
+    }
+    function fileItems() {
+      const aid = P.activeId();
+      return P.files().map((f) => ({ l: f.name, d: f.folder, id: f.id, run: () => P.activate(f.id), cur: f.id === aid }));
+    }
+    function filter(all, q) {
+      const toks = q.toLowerCase().split(/\s+/).filter(Boolean);
+      if (!toks.length) return all.slice(0, 80);
+      return all.map((it) => {
+        const hay = (it.l + " " + (it.d || "")).toLowerCase(); let score = 0;
+        for (const t of toks) { const i = hay.indexOf(t); if (i < 0) return null; score += i; if (it.l.toLowerCase().indexOf(t) === 0) score -= 50; }
+        return { it: it, score: score };
+      }).filter(Boolean).sort((a, b) => a.score - b.score).map((x) => x.it).slice(0, 80);
+    }
+    function draw() {
+      list.textContent = "";
+      const raw = input.value, cmd = raw.charAt(0) === ">", q = cmd ? raw.slice(1).trim() : raw.trim();
+      items = filter(cmd ? commands() : fileItems(), q);
+      if (sel >= items.length) sel = Math.max(0, items.length - 1);
+      if (!items.length) list.appendChild(h("div", "pal-empty", T("ما في نتائج.", "No results.")));
+      items.forEach((it, i) => {
+        const r = h("div", "pal-item" + (i === sel ? " sel" : ""));
+        r.append(h("span", "pal-l", it.l + (it.cur ? "  ●" : "")), h("span", "pal-detail", it.d || ""));
+        r.onmousemove = () => { if (sel !== i) { sel = i; draw(); } };
+        r.onclick = () => exec(it);
+        list.appendChild(r);
+      });
+      const s = list.querySelector(".sel");
+      if (s && s.scrollIntoView) s.scrollIntoView({ block: "nearest" });
+    }
+    function exec(it) { close(); setTimeout(() => { try { it.run(); } catch (e) { if (typeof setStatus === "function") setStatus(String(e.message || e), false); } }, 0); }
+    function close() { if (bg) { bg.remove(); bg = null; } }
+    function open(prefix) {
+      close(); sel = 0;
+      bg = h("div"); bg.id = "palette-bg";
+      const box = h("div"); box.id = "palette";
+      input = h("input"); input.value = prefix;
+      input.placeholder = T("اكتب اسم ملف... أو ابدأ بـ > للأوامر", "Type a file name... or start with > for commands");
+      list = h("div", "pal-list");
+      box.append(input, list); bg.appendChild(box); document.body.appendChild(bg);
+      bg.addEventListener("mousedown", (e) => { if (e.target === bg) close(); });
+      input.addEventListener("input", () => { sel = 0; draw(); });
+      input.addEventListener("keydown", (e) => {
+        e.stopPropagation();
+        if (e.key === "ArrowDown") { e.preventDefault(); sel = Math.min(items.length - 1, sel + 1); draw(); }
+        else if (e.key === "ArrowUp") { e.preventDefault(); sel = Math.max(0, sel - 1); draw(); }
+        else if (e.key === "Enter") { e.preventDefault(); if (items[sel]) exec(items[sel]); }
+        else if (e.key === "Escape") { e.preventDefault(); close(); }
+      });
+      draw(); input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+    }
+    document.addEventListener("keydown", (e) => {
+      const mod = e.ctrlKey || e.metaKey, k = (e.key || "").toLowerCase();
+      if (!mod || e.altKey) return;
+      if (e.shiftKey && k === "p") { e.preventDefault(); e.stopPropagation(); open(">"); }
+      else if (!e.shiftKey && k === "p") { e.preventDefault(); e.stopPropagation(); open(""); }
+      else if (e.shiftKey && k === "f") { e.preventDefault(); e.stopPropagation(); if (window.AysarSearch) window.AysarSearch.open(); }
+    }, true);
+    window.AysarPalette = { open: open, close: close };
+  })();
+
+  /* ===== بحث داخل الملف + ألوان تلوين البحث + زر الحفظ بالفضاء ===== */
+  (function () {
+    const P = window.AysarProject, D = window.AysarDisk;
+    if (!P) return;
+    const T = (ar, en) => (ui === "ar" ? ar : en);
+    const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+    // 1) ألوان تلوين نتائج البحث (Ctrl+F) بكل المظاهر، عشان تبين بوضوح
+    try {
+      if (typeof THEMES_CONFIG !== "undefined") {
+        const FIND = {
+          "editor.findMatchBackground": "#f59e0b99", "editor.findMatchHighlightBackground": "#f59e0b55",
+          "editor.findRangeHighlightBackground": "#f59e0b18", "editorOverviewRuler.findMatchForeground": "#f59e0b",
+          "editor.selectionHighlightBackground": "#f59e0b30"
+        };
+        Object.keys(THEMES_CONFIG).forEach((k) => {
+          const c = THEMES_CONFIG[k];
+          if (!c.monacoDef) { c.monacoTheme = "aysar-" + k; c.monacoDef = { base: "vs", inherit: true, rules: [], colors: {} }; }
+          c.monacoDef.colors = Object.assign({}, c.monacoDef.colors, FIND);
+        });
+      }
+    } catch (e) {}
+
+    // 2) زر 🔎 بشريط المحرر التقليدي (بالفضاء: زر 🔎 بكل كتلة)
+    const acts = document.querySelector(".editor-actions");
+    if (acts) {
+      const b = h("button", "editor-act-btn", "🔎");
+      b.title = T("بحث في الملف (Ctrl+F)", "Find in file (Ctrl+F)");
+      b.onclick = () => P.find(false);
+      acts.insertBefore(b, acts.firstChild);
+    }
+
+    // 3) Ctrl+F / Ctrl+H لما التركيز مش داخل المحرر: نفتح البحث بالملف الحالي بدل بحث المتصفح
+    document.addEventListener("keydown", (e) => {
+      const mod = e.ctrlKey || e.metaKey, k = (e.key || "").toLowerCase();
+      if (!mod || e.altKey || e.shiftKey || (k !== "f" && k !== "h")) return;
+      const a = document.activeElement;
+      if (a && a.closest && a.closest(".monaco-editor")) return;   // Monaco بيعالجها بنفسه
+      if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.tagName === "SELECT")) return;
+      if (P.find(k === "h")) { e.preventDefault(); e.stopPropagation(); }
+    }, true);
+
+    // 4) زر الحفظ بشريط الفضاء + مؤشر «غير محفوظ»
+    const sv = document.getElementById("sp-save");
+    function updSave() {
+      if (!sv) return;
+      const dirty = !!(D && D.isDirty && D.isDirty());
+      sv.classList.toggle("dirty", dirty);
+      sv.textContent = dirty ? "💾●" : "💾";
+      sv.title = T("حفظ على القرص (Ctrl+S)", "Save to disk (Ctrl+S)") + (D && D.isLinked && D.isLinked() ? "" : " · " + T("المشروع مش مرتبط بمجلد", "project not linked to a folder"));
+    }
+    if (sv) {
+      sv.onclick = () => { if (D) D.save(document.body, false); };
+      P.onChange(() => setTimeout(updSave, 400));
+      if (D && D.renderBar) { const ob = D.renderBar; D.renderBar = (box) => { ob(box); updSave(); }; }
+      updSave();
+    }
+    window.AysarFind = { find: (r) => P.find(!!r) };
+  })();
+</script>
+<script>
+(() => {
+  const b = document.getElementById("btn-logout");
+  if (!b) return;
+  const label = () => {
+    const en = document.documentElement.lang === "en";
+    b.textContent = en ? "Log out" : "خروج";
+    b.title = en ? "Log out" : "تسجيل الخروج";
+  };
+  new MutationObserver(label).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+  label();
+  b.addEventListener("click", async () => {
+    try { await fetch("/api/logout", { method: "POST", credentials: "same-origin" }); } catch (e) {}
+    location.replace("/login");
+  });
+})();
+</script>
+</body></html>
