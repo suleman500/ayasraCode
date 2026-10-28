@@ -1068,17 +1068,18 @@
     javascript: "async await break case catch class const continue default do else export extends finally for function if import let return switch throw try var while console",
     dart: "abstract assert async await break case catch class const continue do else enum extends final finally for if import return switch throw try var void while int double num String bool List Map Set dynamic late required print"
   }; 
+  KEYWORDS.html = ""; KEYWORDS.css = "";
   for (const k in KEYWORDS) KEYWORDS[k] = new Set(KEYWORDS[k].split(" "));
   function looksLikeCode(text, lang) {
     const stripped = text
       .replace(/(["'`])(?:\\.|(?!\1).)*\1/g, "")
-      .replace(lang === "python" ? /#.*$/ : /\/\/.*$/, "")
+      .replace(lang === "python" ? /#.*$/ : lang === "html" ? /<!--.*?-->/g : lang === "css" ? /\/\*.*?\*\//g : /\/\/.*$/, "")
       .trim();
     if (/[\u0600-\u06FF]/.test(stripped)) return false;
     if (stripped === "") return true;
     if (/[(){}\[\];=<>]/.test(stripped)) return true;
     const words = stripped.match(/[A-Za-z_][A-Za-z0-9_]*/g) || [];
-    if (words.length <= 1) return true;
+    if (words.length <= 1 && lang !== "html" && lang !== "css") return true;
     if (KEYWORDS[lang].has(words[0])) {
       return words.length <= 2 || /[:{]$/.test(stripped);
     }
@@ -1391,7 +1392,7 @@
     if (!text) { Sound.deny(); setStatus(TEXT[ui].empty, false); return; }
     const indent = raw.match(/^\s*/)[0];
     const lang = window.__activeLang ? window.__activeLang() : $("lang").value;
-    if (window.__aiLangs && !window.__aiLangs.includes(lang)) { Sound.deny(); setStatus(ui === "ar" ? "التحويل بالذكاء الاصطناعي متاح حالياً لبايثون وجافاسكربت ودارت فقط." : "AI conversion is currently available for Python, JavaScript and Dart only.", false); return; }
+    if (window.__aiLangs && !window.__aiLangs.includes(lang)) { Sound.deny(); setStatus(ui === "ar" ? "التحويل بالذكاء الاصطناعي متاح حالياً لبايثون وجافاسكربت ودارت وHTML وCSS فقط." : "AI conversion is currently available for Python, JavaScript, Dart, HTML and CSS only.", false); return; }
     if (looksLikeCode(text, lang)) { Sound.deny(); setStatus(TEXT[ui].isCode, false); return; }
     const all = model.getLinesContent();
     const before = all.slice(Math.max(0, lineNo - 31), lineNo - 1).join("\n");
@@ -1589,8 +1590,8 @@
       javascript: Object.assign({ label: "JavaScript", ext: "js", ai: true }, SLASH),
       dart: Object.assign({ label: "Dart", ext: "dart", ai: true }, SLASH),
       typescript: Object.assign({ label: "TypeScript", ext: "ts", ai: false }, SLASH),
-      css: { label: "CSS", ext: "css", ai: false, re: /^\/\*\s*(.*?)\s*\*\/$/, make: (t) => "/* " + t + " */" },
-      html: Object.assign({ label: "HTML", ext: "html", ai: false }, HTMLC),
+      css: { label: "CSS", ext: "css", ai: true, re: /^\/\*\s*(.*?)\s*\*\/$/, make: (t) => "/* " + t + " */" },
+      html: Object.assign({ label: "HTML", ext: "html", ai: true }, HTMLC),
       markdown: Object.assign({ label: "Markdown", ext: "md", ai: false }, HTMLC),
       yaml: Object.assign({ label: "YAML", ext: "yaml", ai: false }, HASH),
       json: { label: "JSON", ext: "json", ai: false, re: null, make: null },
