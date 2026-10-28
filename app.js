@@ -108,7 +108,7 @@ function createApp({ bridge, convert, hasGeminiKey }) {
   app.post("/convert", authRequired, convertLimiter, express.json({ limit: "60kb" }), async (req, res) => {
     if (!hasGeminiKey) return res.status(500).json({ error: "GEMINI_API_KEY غير مضبوط على السيرفر" });
     const { text, language, before = "", after = "" } = req.body || {};
-    if (typeof text !== "string" || !text.trim() || text.length > 1000 || !["python", "javascript", "dart"].includes(language)) {
+    if (typeof text !== "string" || !text.trim() || text.length > 1000 || !["python", "javascript", "dart", "html", "css"].includes(language)) {
       return res.status(400).json({ error: "طلب غير صالح" });
     }
     try {

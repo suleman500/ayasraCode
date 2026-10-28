@@ -21,7 +21,9 @@ Rules:
 - Write the code with zero indentation on its first line; the editor adds the indentation.
 - If the line is already valid code, return it unchanged.
 - Keep identifiers in English.
-- Be minimal: do only what the line asks. Do not add imports, main functions, or extra features unless the line requires them.`;
+- Be minimal: do only what the line asks. Do not add imports, main functions, or extra features unless the line requires them.
+- For HTML: output only the requested elements (a fragment), not a full document with html/head/body, unless the line explicitly asks for a full page. Keep any visible text (titles, labels, paragraphs) in the language the student used.
+- For CSS: output only the rule(s) requested, properly formatted with one declaration per line. Use class or element selectors that match names already used in the surrounding code when there are any.`;
 
 function cleanCode(t) {
   t = t.trim();
