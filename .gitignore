@@ -3,8 +3,4 @@ node_modules/
 bridge-state.json
 *.backup
 *.before-*
-add-*.js
-upgrade-space.js
-patch-frameless.js
-models.js
-start.bat
+.DS_Store

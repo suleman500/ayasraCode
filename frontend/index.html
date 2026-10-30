@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 
 <html dir="rtl" lang="ar"><head>
+<script>window.aysarApi = window.aysarApi || function (p) { return ((window.AYSAR_CONFIG && window.AYSAR_CONFIG.API_BASE) || "") + p; };</script>
+<script src="/config.js"></script>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1" name="viewport"/>
 <title>عيصر - Aysar Code Editor</title>
@@ -620,6 +622,44 @@
   #sp-save.dirty { color: #f59e0b; border-color: #f59e0b; }
   .aysar-hit { background: color-mix(in srgb, #f59e0b 45%, transparent); border-radius: 2px; }
   .sr-scope { flex: 1; min-width: 0; height: 28px; padding: 0 6px; font-size: 12px; }
+
+  /* ===== مساعد الذكاء: زر "اسأل" + مربع التيرمنال ===== */
+  .ai-ask-btn { position: fixed; z-index: 10001; display: none; font: 600 13px "JetBrains Mono", ui-monospace, Consolas, "IBM Plex Sans Arabic", monospace; color: #39ff14; background: #050a08; border: 1px solid #1f6b3a; border-radius: 6px; padding: 5px 11px; cursor: pointer; box-shadow: 0 0 12px rgba(57,255,20,.25); }
+  .ai-ask-btn:hover { background: #0a1a12; }
+  .aysar-ai-sel { background: rgba(57,255,20,.10); border-inline-start: 3px solid #39ff14; }
+  .ai-term { position: fixed; z-index: 10000; right: 24px; bottom: 44px; width: min(580px, calc(100vw - 32px)); max-height: min(80vh, 740px); display: none; flex-direction: column; background: #050a08; color: #b6f5c8; border: 1px solid #1f6b3a; border-radius: 10px; box-shadow: 0 0 0 1px #0b2a18, 0 24px 70px rgba(0,0,0,.65), 0 0 28px rgba(57,255,20,.12); font-family: "JetBrains Mono", ui-monospace, Consolas, "IBM Plex Sans Arabic", monospace; font-size: 14px; line-height: 1.6; overflow: hidden; }
+  .ai-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #0a140f; border-bottom: 1px solid #123a24; cursor: grab; user-select: none; direction: ltr; }
+  .ai-dots { display: flex; gap: 6px; flex: none; }
+  .ai-dots span { width: 10px; height: 10px; border-radius: 50%; background: #ff5f56; }
+  .ai-dots span:nth-child(2) { background: #ffbd2e; }
+  .ai-dots span:nth-child(3) { background: #27c93f; }
+  .ai-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #39ff14; font-size: 13px; }
+  .ai-x { flex: none; background: transparent; color: #7aa88a; border: 0; font-size: 15px; cursor: pointer; padding: 2px 6px; border-radius: 4px; }
+  .ai-x:hover { color: #fff; background: #1a2f22; }
+  .ai-code { margin: 0; padding: 10px 12px; max-height: 140px; overflow: auto; background: #030705; border-bottom: 1px solid #123a24; color: #7ee787; font-size: 13px; line-height: 1.5; white-space: pre; direction: ltr; text-align: left; }
+  .ai-msgs { flex: 1; min-height: 90px; overflow: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+  .ai-m { display: flex; gap: 8px; }
+  .ai-tag { flex: none; color: #39ff14; font-weight: 600; direction: ltr; }
+  .ai-m.you .ai-tag { color: #7dd3fc; }
+  .ai-m.err .ai-tag, .ai-m.err .ai-body { color: #fca5a5; }
+  .ai-body { flex: 1; min-width: 0; }
+  .ai-p { white-space: pre-wrap; word-break: break-word; margin: 0 0 6px; }
+  .ai-reason { color: #fbbf24; margin: 4px 0; }
+  .ai-block pre { direction: ltr; text-align: left; margin: 4px 0; padding: 8px 10px; background: #030705; border: 1px solid #123a24; border-radius: 6px; overflow: auto; color: #d1fae5; font-size: 13px; line-height: 1.5; }
+  .ai-actions { display: flex; gap: 8px; margin-bottom: 6px; }
+  .ai-btn, .ai-send { font: inherit; font-size: 13px; color: #39ff14; background: #08120d; border: 1px solid #1f6b3a; border-radius: 6px; padding: 4px 12px; cursor: pointer; }
+  .ai-btn:hover:not(:disabled), .ai-send:hover:not(:disabled) { background: #0f2a1c; }
+  .ai-btn:disabled, .ai-send:disabled { opacity: .55; cursor: default; }
+  .ai-row { display: flex; align-items: flex-end; gap: 8px; padding: 8px 12px 12px; border-top: 1px solid #123a24; }
+  .ai-prompt { color: #39ff14; padding-bottom: 6px; direction: ltr; }
+  .ai-in { flex: 1; resize: none; background: #030705; color: #d1fae5; border: 1px solid #1f6b3a; border-radius: 6px; padding: 7px 9px; font: inherit; font-size: 14px; max-height: 120px; }
+  .ai-term :focus-visible, .ai-ask-btn:focus-visible { outline: 2px solid #39ff14; outline-offset: 1px; }
+  .ai-cursor { animation: ai-blink 1s steps(2) infinite; }
+  @keyframes ai-blink { 50% { opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .ai-cursor { animation: none; } }
+  @media (max-width: 600px) { .ai-term { left: 0 !important; right: 0 !important; top: auto !important; bottom: 0 !important; width: 100%; border-radius: 12px 12px 0 0; max-height: 82vh; } }
+  .ai-tools { display: none; flex-wrap: wrap; gap: 8px; padding: 8px 12px; border-bottom: 1px solid #123a24; background: #050a08; }
+  .ai-paste { width: 100%; margin: 4px 0; resize: vertical; background: #030705; color: #d1fae5; border: 1px solid #1f6b3a; border-radius: 6px; padding: 7px 9px; font: inherit; font-size: 13px; }
 </style>
 </head>
 <body>
@@ -679,7 +719,9 @@
 </button>
 <button class="primary" id="convert"></button>
 <button id="ui-lang">English</button>
+<button id="btn-ai-project" title="اسأل الذكاء الاصطناعي عن المشروع">✦ الذكاء</button>
 <button id="btn-logout" title="تسجيل الخروج">خروج</button>
+<button id="btn-logout-all" title="إنهاء كل الجلسات على كل الأجهزة">إنهاء كل الجلسات</button>
 </header>
 <!-- هيكل العمل مدمج مع شريط نشاط VS Code -->
 <div id="app-body">
@@ -1373,7 +1415,7 @@
   let busy = false;
   async function askAI(payload) {
     if (location.protocol === "file:") throw new Error(TEXT[ui].needServer);
-    const res = await fetch("/convert", {
+    const res = await fetch(window.aysarApi("/api/ai/convert"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
@@ -3349,20 +3391,621 @@
     }
     window.AysarFind = { find: (r) => P.find(!!r) };
   })();
+
+  /* ===== مساعد الذكاء الاصطناعي: حدّد أسطراً ثم "اسأل" ← مربع تيرمنال + محادثة + نسخ/تطبيق + سجل AI-LOG.md ===== */
+  (function () {
+    const P = window.AysarProject;
+    if (!P) return;
+    const T = (ar, en) => (ui === "ar" ? ar : en);
+    const say = (m, good) => { if (typeof setStatus === "function") setStatus(m, good); };
+    const h = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+    const LOG_NAME = "AI-LOG.md", MAX_CODE = 15000;
+    const eds = new WeakSet();
+    let btn = null, btnFor = null, term = null, S = null;
+    const els = {};
+
+    // ---------- ربط كل محررات Monaco (التقليدي وكتل الفضاء) ----------
+    function whenMonaco(cb, n) {
+      n = n || 0;
+      if (window.monaco && window.monaco.editor && window.monaco.editor.getEditors) return cb();
+      if (n < 150) setTimeout(() => whenMonaco(cb, n + 1), 300);
+    }
+    whenMonaco(() => {
+      monaco.editor.getEditors().forEach(attach);
+      monaco.editor.onDidCreateEditor(attach);
+    });
+
+    function attach(ed) {
+      if (eds.has(ed)) return;
+      eds.add(ed);
+      ed.onDidChangeCursorSelection(() => updateBtn(ed));
+      ed.onDidBlurEditorWidget(() => setTimeout(() => { if (btnFor === ed && !ed.hasWidgetFocus()) hideBtn(); }, 200));
+      ed.onDidScrollChange(() => { if (btnFor === ed) positionBtn(ed); });
+      ed.onDidLayoutChange(() => { if (btnFor === ed) positionBtn(ed); });
+      ed.addAction({
+        id: "aysar-ask-ai", label: T("اسأل الذكاء الاصطناعي", "Ask AI"),
+        contextMenuGroupId: "navigation", contextMenuOrder: 0, precondition: "editorHasSelection",
+        run: () => openFor(ed),
+      });
+    }
+
+    // ---------- الأسطر المحددة (أسطر كاملة) ----------
+    function selLines(ed) {
+      const s = ed.getSelection(), m = ed.getModel();
+      if (!s || !m || s.isEmpty()) return null;
+      let a = s.startLineNumber, b = s.endLineNumber;
+      if (b > a && s.endColumn === 1) b--;
+      return { a, b };
+    }
+
+    // ---------- زر "اسأل" العائم ----------
+    function ensureBtn() {
+      if (btn) return;
+      btn = h("button", "ai-ask-btn", "✦ " + T("اسأل", "Ask"));
+      btn.type = "button";
+      btn.title = T("اسأل الذكاء الاصطناعي عن الأسطر المحددة", "Ask AI about the selected lines");
+      btn.addEventListener("mousedown", (e) => e.preventDefault()); // لا نفقد التحديد
+      btn.addEventListener("click", () => { if (btnFor) openFor(btnFor); });
+      document.body.appendChild(btn);
+    }
+    function hideBtn() { if (btn) btn.style.display = "none"; btnFor = null; }
+    function updateBtn(ed) {
+      if (term && term.style.display !== "none") return hideBtn();
+      const r = selLines(ed);
+      if (!r || !ed.hasWidgetFocus()) { if (btnFor === ed) hideBtn(); return; }
+      ensureBtn();
+      btnFor = ed;
+      positionBtn(ed);
+    }
+    function positionBtn(ed) {
+      const sel = ed.getSelection(), dom = ed.getDomNode();
+      if (!btn || !sel || !dom || sel.isEmpty()) return hideBtn();
+      const pos = ed.getScrolledVisiblePosition({ lineNumber: sel.startLineNumber, column: sel.startColumn });
+      if (!pos) return hideBtn();
+      const rect = dom.getBoundingClientRect();
+      const scale = dom.offsetWidth ? rect.width / dom.offsetWidth : 1; // كتل الفضاء قد تكون مكبّرة/مصغّرة
+      if (pos.top < -pos.height || (dom.offsetHeight && pos.top > dom.offsetHeight)) return hideBtn();
+      let top = rect.top + pos.top * scale - 34;
+      if (top < 4) top = rect.top + (pos.top + pos.height) * scale + 6;
+      const left = Math.max(8, Math.min(rect.left + pos.left * scale, window.innerWidth - 90));
+      btn.style.display = "block";
+      btn.style.top = Math.round(top) + "px";
+      btn.style.left = Math.round(left) + "px";
+    }
+
+    // ---------- الملف المرتبط بالمحرر ----------
+    function fileOf(m) {
+      const files = P.files(), code = m.getValue();
+      let f = files.find((x) => x.id === P.activeId());
+      if (!f || f.code !== code) f = files.find((x) => x.code === code) || f;
+      return f ? { id: f.id, folder: f.folder || "", name: f.name, lang: f.lang || "plaintext" } : { id: null, folder: "", name: T("ملف", "file"), lang: "plaintext" };
+    }
+
+    // ---------- الجلسة ----------
+    function curRange() {
+      if (!S || !S.m || S.m.isDisposed()) return null;
+      const r = S.m.getDecorationRange(S.deco[0]);
+      return r ? { a: r.startLineNumber, b: r.endLineNumber } : null;
+    }
+    function rangeOf(rg) { return new monaco.Range(rg.a, 1, rg.b, S.m.getLineMaxColumn(rg.b)); }
+    function curText() { const rg = curRange(); return rg ? S.m.getValueInRange(rangeOf(rg)) : ""; }
+    function mark(m, old, a, b) {
+      return m.deltaDecorations(old, [{ range: new monaco.Range(a, 1, b, 1), options: { isWholeLine: true, className: "aysar-ai-sel" } }]);
+    }
+
+    function openFor(ed) {
+      const r = selLines(ed), m = ed.getModel();
+      if (!r || !m) return;
+      const text = m.getValueInRange(new monaco.Range(r.a, 1, r.b, m.getLineMaxColumn(r.b)));
+      if (!text.trim()) { say(T("حدّد أسطراً فيها كود أولاً", "Select some code first")); return; }
+      if (text.length > MAX_CODE) { say(T("الجزء المحدد كبير، حدّد أسطراً أقل (الحد " + MAX_CODE + " حرف)", "Selection too large (max " + MAX_CODE + " chars)")); return; }
+      closeSession(true);
+      hideBtn();
+      S = { mode: "code", ed, m, file: fileOf(m), deco: mark(m, [], r.a, r.b), msgs: [], busy: false, model: "" };
+      buildTerm();
+      els.msgs.textContent = "";
+      els.ta.placeholder = T("اكتب سؤالك… (Enter للإرسال، Shift+Enter سطر جديد)", "Type your question… (Enter to send)");
+      els.tools.style.display = "none";
+      line("ai", T("اسألني عن هذه الأسطر، أو اطلب مني تعديلها.", "Ask me about these lines, or ask me to change them."));
+      codeView();
+      term.style.display = "flex";
+      els.ta.focus();
+    }
+
+    function closeSession(silent) {
+      if (S && S.m && !S.m.isDisposed()) { try { S.m.deltaDecorations(S.deco, []); } catch (e) {} }
+      const ed = S && S.ed;
+      S = null;
+      if (term) term.style.display = "none";
+      if (!silent && ed) { try { ed.focus(); } catch (e) {} }
+    }
+
+    function codeView() {
+      const rg = curRange();
+      if (!rg) return;
+      const lines = curText().split("\n");
+      els.code.textContent = lines.map((l, i) => String(rg.a + i).padStart(3, " ") + "  " + l).join("\n");
+      els.title.textContent = "ai@aysar:~$ " + S.file.name + " [" + rg.a + "-" + rg.b + "]";
+    }
+
+    // ---------- بناء مربع التيرمنال ----------
+    function buildTerm() {
+      if (term) return;
+      term = h("div", "ai-term");
+      term.setAttribute("role", "dialog");
+      term.setAttribute("aria-label", T("مساعد الذكاء الاصطناعي", "AI assistant"));
+      const bar = h("div", "ai-bar");
+      const dots = h("span", "ai-dots");
+      dots.append(h("span"), h("span"), h("span"));
+      els.title = h("span", "ai-title");
+      const x = h("button", "ai-x", "✕");
+      x.type = "button";
+      x.title = T("إغلاق", "Close");
+      x.setAttribute("aria-label", T("إغلاق", "Close"));
+      x.addEventListener("click", () => closeSession());
+      bar.append(dots, els.title, x);
+      els.code = h("pre", "ai-code");
+      els.msgs = h("div", "ai-msgs");
+      els.msgs.setAttribute("aria-live", "polite");
+      const row = h("div", "ai-row");
+      els.ta = h("textarea", "ai-in");
+      els.ta.rows = 1;
+      els.ta.placeholder = T("اكتب سؤالك… (Enter للإرسال، Shift+Enter سطر جديد)", "Type your question… (Enter to send)");
+      els.ta.setAttribute("aria-label", T("سؤالك للذكاء الاصطناعي", "Your question"));
+      els.send = h("button", "ai-send", T("إرسال", "Send"));
+      els.send.type = "button";
+      row.append(h("span", "ai-prompt", ">"), els.ta, els.send);
+      els.tools = h("div", "ai-tools");
+      const tb = (label, tip, fn) => { const b = h("button", "ai-btn", label); b.type = "button"; b.title = tip; b.addEventListener("click", fn); els.tools.appendChild(b); return b; };
+      tb("📤 " + T("تصدير المشروع (ملف)", "Export project (file)"), T("ينزّل ملفاً واحداً فيه المشروع كله وتعليمات لنموذج ذكاء آخر", "Downloads one file with the whole project and instructions for another AI"), () => exportProject("download"));
+      tb("📋 " + T("نسخ المشروع", "Copy project"), T("ينسخ نفس المحتوى لتلصقه في نموذج آخر", "Copies the same content to paste into another AI"), () => exportProject("copy"));
+      tb("📥 " + T("لصق سجل نموذج آخر", "Paste another AI's log"), T("أضف سطور AI-LOG التي كتبها النموذج الآخر إلى سجل المشروع", "Add the AI-LOG lines written by another AI to the project log"), openPaste);
+      term.append(bar, els.code, els.tools, els.msgs, row);
+      document.body.appendChild(term);
+
+      els.send.addEventListener("click", send);
+      els.ta.addEventListener("input", () => { els.ta.style.height = "auto"; els.ta.style.height = Math.min(els.ta.scrollHeight, 120) + "px"; });
+      term.addEventListener("keydown", (e) => {
+        e.stopPropagation(); // لا نترك اختصارات الصفحة تتدخل أثناء الكتابة هنا
+        if (e.key === "Escape") { closeSession(); return; }
+        if (e.key === "Enter" && !e.shiftKey && e.target === els.ta) { e.preventDefault(); send(); }
+      });
+      bar.addEventListener("pointerdown", (e) => {
+        if (e.target.closest("button")) return;
+        const r = term.getBoundingClientRect(), dx = e.clientX - r.left, dy = e.clientY - r.top;
+        term.style.left = r.left + "px"; term.style.top = r.top + "px"; term.style.right = "auto"; term.style.bottom = "auto";
+        const mv = (ev) => {
+          term.style.left = Math.max(0, Math.min(window.innerWidth - 80, ev.clientX - dx)) + "px";
+          term.style.top = Math.max(0, Math.min(window.innerHeight - 40, ev.clientY - dy)) + "px";
+        };
+        const up = () => { window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); };
+        window.addEventListener("pointermove", mv);
+        window.addEventListener("pointerup", up);
+        e.preventDefault();
+      });
+    }
+
+    // ---------- عرض الرسائل ----------
+    function line(kind, text) {
+      const m = h("div", "ai-m " + kind);
+      m.append(h("span", "ai-tag", kind === "you" ? "you>" : "ai>"));
+      const body = h("div", "ai-body");
+      if (text !== undefined) { const p = h("div", "ai-p", text); p.dir = "auto"; body.appendChild(p); }
+      m.appendChild(body);
+      els.msgs.appendChild(m);
+      els.msgs.scrollTop = els.msgs.scrollHeight;
+      return body;
+    }
+    function para(body, t) {
+      t = t.trim();
+      if (!t) return;
+      const p = h("div", "ai-p", t);
+      p.dir = "auto";
+      body.appendChild(p);
+    }
+    function rich(body, text) {
+      const re = /```[\w+#.-]*\n?([\s\S]*?)```/g;
+      let last = 0, mm;
+      while ((mm = re.exec(text))) {
+        para(body, text.slice(last, mm.index));
+        body.appendChild(codeBlock(mm[1].replace(/\n$/, ""), null));
+        last = re.lastIndex;
+      }
+      para(body, text.slice(last));
+    }
+    function codeBlock(code, sg) {
+      const wrap = h("div", "ai-block");
+      const pre = h("pre", "", code);
+      pre.dir = "ltr";
+      const act = h("div", "ai-actions");
+      const cp = h("button", "ai-btn", T("نسخ", "Copy"));
+      cp.type = "button";
+      cp.addEventListener("click", async () => {
+        const ok = await copyText(code);
+        cp.textContent = ok ? T("✓ نُسخ", "✓ Copied") : T("تعذّر النسخ", "Copy failed");
+        setTimeout(() => { cp.textContent = T("نسخ", "Copy"); }, 1500);
+        if (ok) logOp(T("أنت", "You"), T("نسخ", "Copied"), sg ? sg.reason : T("نسخ كود من رد الذكاء", "copied code from the AI reply"));
+      });
+      act.appendChild(cp);
+      if (sg) {
+        const ap = h("button", "ai-btn", T("تطبيق على الكود", "Apply to code"));
+        ap.type = "button";
+        ap.addEventListener("click", () => applySug(sg, ap));
+        act.appendChild(ap);
+      }
+      wrap.append(pre, act);
+      return wrap;
+    }
+    async function copyText(t) {
+      try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+      try {
+        const ta = h("textarea"); ta.value = t; ta.style.position = "fixed"; ta.style.opacity = "0";
+        document.body.appendChild(ta); ta.select();
+        const ok = document.execCommand("copy");
+        ta.remove();
+        return ok;
+      } catch (e) { return false; }
+    }
+
+    // ---------- الإرسال ----------
+    async function send() {
+      if (!S || S.busy) return;
+      const q = els.ta.value.trim();
+      if (!q) return;
+      const proj = S.mode === "project";
+      const rg = proj ? null : curRange();
+      if (!proj && !rg) { line("err", T("الجزء المحدد لم يعد موجوداً في الملف. أغلق المربع وحدّد من جديد.", "The selected lines no longer exist.")); return; }
+      els.ta.value = ""; els.ta.style.height = "auto";
+      line("you", q);
+      S.msgs.push({ role: "user", text: q });
+      logOp(T("أنت", "You"), T("سؤال", "Question"), q);
+      S.busy = true; els.send.disabled = true;
+      const wait = line("ai");
+      wait.append(h("span", "ai-cursor", T("جارٍ التفكير ▍", "thinking ▍")));
+      try {
+        const body = proj
+          ? { paths: projectPaths(), currentFolder: curFolderName(), messages: S.msgs.slice(-12) }
+          : { file: S.file.name, language: S.file.lang, startLine: rg.a, endLine: rg.b, code: curText(), messages: S.msgs.slice(-12) };
+        const r = await fetch(window.aysarApi(proj ? "/api/ai/project" : "/api/ai/chat"), {
+          method: "POST", headers: { "Content-Type": "application/json" }, credentials: "same-origin", body: JSON.stringify(body),
+        });
+        if (r.status === 401) throw new Error(T("انتهت جلسة الدخول. حدّث الصفحة وسجّل الدخول من جديد.", "Session expired. Reload and log in again."));
+        const d = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(d.error || T("تعذّر الحصول على رد", "Could not get a reply"));
+        S.model = d.model || S.model;
+        const who = "Gemini" + (S.model ? " (" + S.model + ")" : "");
+        wait.textContent = "";
+        if (proj) {
+          const acts = Array.isArray(d.actions) ? d.actions : [];
+          S.msgs.push({ role: "model", text: (d.reply || "") + acts.map((x) => "\n\n[" + T("خطوة مقترحة", "suggested step") + " " + x.type + "] " + x.path).join("") });
+          rich(wait, d.reply || "");
+          renderActions(wait, acts);
+          els.msgs.scrollTop = els.msgs.scrollHeight;
+          logOp(who, acts.length ? T("رد مع اقتراح", "Reply with suggestion") : T("رد بدون تعديل", "Reply only"), d.reply || "");
+          acts.forEach((x) => logOp(who, T("اقتراح", "Suggestion"), actionLabel(x) + " | " + T("السبب: ", "Reason: ") + (x.reason || "-"), x.type === "create_file" && x.content ? x.content : "", extLang(x.path)));
+        } else {
+          const orig = curText();
+          const sugs = (Array.isArray(d.suggestions) ? d.suggestions : []).map((x) => ({ code: rebase(x.code, orig), reason: x.reason }));
+          S.msgs.push({ role: "model", text: (d.reply || "") + sugs.map((x) => "\n\n[" + T("اقتراح كود", "suggested code") + "]\n" + x.code).join("") });
+          rich(wait, d.reply || "");
+          sugs.forEach((sg) => {
+            const box = h("div", "ai-sug");
+            if (sg.reason) { const rr = h("div", "ai-reason", T("السبب: ", "Reason: ") + sg.reason); rr.dir = "auto"; box.appendChild(rr); }
+            box.appendChild(codeBlock(sg.code, sg));
+            wait.appendChild(box);
+          });
+          els.msgs.scrollTop = els.msgs.scrollHeight;
+          logOp(who, sugs.length ? T("رد مع اقتراح", "Reply with suggestion") : T("رد بدون تعديل", "Reply only"), d.reply || "");
+          sugs.forEach((sg) => logOp(who, T("اقتراح", "Suggestion"), T("السبب: ", "Reason: ") + (sg.reason || "-"), sg.code));
+        }
+      } catch (e) {
+        S.msgs.pop();
+        wait.parentNode.remove();
+        line("err", e.message || String(e));
+      } finally {
+        if (S) { S.busy = false; els.send.disabled = false; els.ta.focus(); }
+      }
+    }
+
+    // ---------- مطابقة مسافة بداية الأسطر مع الأصل ----------
+    const lead = (l) => l.match(/^[ \t]*/)[0];
+    function minIndent(text) {
+      let best = null;
+      text.split("\n").forEach((l) => { if (!l.trim()) return; const w = lead(l); if (best === null || w.length < best.length) best = w; });
+      return best === null ? "" : best;
+    }
+    function rebase(code, orig) {
+      const want = minIndent(orig), have = minIndent(code);
+      if (want === have) return code;
+      return code.split("\n").map((l) => (l.trim() ? want + (l.startsWith(have) ? l.slice(have.length) : l.replace(/^[ \t]*/, "")) : l)).join("\n");
+    }
+
+    // ---------- تطبيق اقتراح ----------
+    function applySug(sg, b) {
+      const rg = curRange();
+      if (!rg) { say(T("تعذّر التطبيق: الجزء المحدد لم يعد موجوداً", "Cannot apply: the selected lines are gone")); return; }
+      const m = S.m, a = rg.a;
+      m.pushStackElement();
+      m.pushEditOperations([], [{ range: rangeOf(rg), text: sg.code }], () => null);
+      m.pushStackElement();
+      const nb = a + sg.code.split("\n").length - 1;
+      S.deco = mark(m, S.deco, a, nb);
+      b.disabled = true;
+      b.textContent = T("✓ تم التطبيق", "✓ Applied");
+      codeView();
+      say(T("تم تطبيق التعديل. للتراجع اضغط Ctrl+Z داخل الملف.", "Applied. Press Ctrl+Z in the file to undo."), true);
+      logOp(T("أنت", "You"), T("تم تعديل", "Edited"), T("السطور ", "lines ") + rg.a + "-" + rg.b + " → " + a + "-" + nb + " | " + T("السبب: ", "Reason: ") + (sg.reason || "-"));
+    }
+
+    // ---------- وضع المشروع: يرى أسماء الملفات والمجلدات فقط ----------
+    const EXT = { py: "python", js: "javascript", dart: "dart", ts: "typescript", css: "css", html: "html", htm: "html", md: "markdown", yml: "yaml", yaml: "yaml", json: "json", txt: "plaintext" };
+    const extLang = (path) => EXT[(String(path).split(".").pop() || "").toLowerCase()] || "";
+    function curFolderName() { return String(P.activeFolder() || P.folders()[0] || ""); }
+    function projectPaths() {
+      const out = P.folders().map((f) => f + "/");
+      P.files().forEach((f) => out.push((f.folder ? f.folder + "/" : "") + f.name));
+      return Array.from(new Set(out)).sort().slice(0, 400);
+    }
+    function treeView() {
+      const paths = projectPaths();
+      els.code.textContent = paths.map((p) => {
+        const isDir = p.endsWith("/"), segs = p.replace(/\/$/, "").split("/");
+        return "  ".repeat(segs.length - 1) + segs[segs.length - 1] + (isDir ? "/" : "");
+      }).join("\n");
+      els.title.textContent = "ai@aysar:~$ project/ [" + T("الأسماء فقط", "names only") + "]";
+    }
+    function openProject() {
+      closeSession(true);
+      hideBtn();
+      const here = curFolderName();
+      S = { mode: "project", ed: null, m: null, deco: [], file: { folder: here, name: T("المشروع", "project"), lang: "plaintext" }, msgs: [], busy: false, model: "" };
+      buildTerm();
+      els.msgs.textContent = "";
+      els.ta.placeholder = T("اسأل عن تقسيم المشروع أو اطلب إنشاء ملفات ومجلدات…", "Ask about the project structure or ask to create files and folders…");
+      line("ai", T("أرى أسماء الملفات والمجلدات فقط، ولا أرى ما بداخلها. اسألني عن تقسيم المشروع، أو اطلب مني إنشاء ملفات ومجلدات.", "I can see file and folder names only, not what is inside them. Ask about the structure, or ask me to create files and folders."));
+      treeView();
+      els.tools.style.display = "flex";
+      term.style.display = "flex";
+      els.ta.focus();
+    }
+    function cleanPath(p) {
+      p = String(p || "").replace(/\\/g, "/").replace(/\/+/g, "/").replace(/^\/|\/$/g, "").trim();
+      const segs = p.split("/").map((x) => x.trim());
+      if (!p || segs.length > 8) return null;
+      for (const x of segs) if (!x || x === "." || x === ".." || x.length > 60 || /[<>:"|?*\u0000-\u001f]/.test(x)) return null;
+      return segs.join("/");
+    }
+    function actionLabel(x) { return (x.type === "create_folder" ? T("إنشاء مجلد ", "Create folder ") : T("إنشاء ملف ", "Create file ")) + x.path; }
+    function runAction(x) {
+      const path = cleanPath(x.path);
+      if (!path) return { ok: false, msg: T("مسار غير صالح: ", "Invalid path: ") + x.path };
+      if (x.type === "create_folder") {
+        if (P.folders().includes(path)) return { ok: false, exists: true, msg: T("المجلد موجود مسبقاً: ", "Folder already exists: ") + path };
+        P.addFolder(path);
+        return { ok: true, msg: T("إنشاء مجلد ", "Created folder ") + path };
+      }
+      if (x.type === "create_file") {
+        const i = path.lastIndexOf("/"), folder = i < 0 ? "" : path.slice(0, i), name = path.slice(i + 1);
+        if (!name.includes(".")) return { ok: false, msg: T("اسم الملف بلا امتداد: ", "File name has no extension: ") + name };
+        const lang = extLang(name);
+        if (!lang) return { ok: false, msg: T("امتداد غير مدعوم: ", "Unsupported extension: ") + name };
+        if (P.files().some((f) => f.folder === folder && f.name === name)) return { ok: false, exists: true, msg: T("الملف موجود مسبقاً: ", "File already exists: ") + path };
+        P.addFile({ folder, name, lang, code: String(x.content || "") });
+        return { ok: true, msg: T("إنشاء ملف ", "Created file ") + path };
+      }
+      return { ok: false, msg: T("نوع خطوة غير مدعوم", "Unsupported step") };
+    }
+    function applyAction(x, b) {
+      let res;
+      try { res = runAction(x); } catch (e) { res = { ok: false, msg: String((e && e.message) || e) }; }
+      if (res.ok) {
+        b.disabled = true;
+        b.textContent = T("✓ تم", "✓ Done");
+        treeView();
+        say(T("تم: ", "Done: ") + res.msg, true);
+        logOp(T("أنت", "You"), T("تم إنشاء", "Created"), res.msg + " | " + T("السبب: ", "Reason: ") + (x.reason || "-"));
+      } else {
+        if (res.exists) { b.disabled = true; b.textContent = T("موجود", "Exists"); }
+        say(res.msg);
+        line("err", res.msg);
+      }
+      return res.ok;
+    }
+    function renderActions(body, acts) {
+      if (!acts.length) return;
+      const btns = [];
+      acts.forEach((x) => {
+        const box = h("div", "ai-sug");
+        const t = h("div", "ai-p", (x.type === "create_folder" ? "📁 " : "📄 ") + actionLabel(x));
+        t.dir = "auto";
+        box.appendChild(t);
+        if (x.reason) { const rr = h("div", "ai-reason", T("السبب: ", "Reason: ") + x.reason); rr.dir = "auto"; box.appendChild(rr); }
+        if (x.type === "create_file" && x.content) { const pre = h("pre", "", x.content); pre.dir = "ltr"; const w = h("div", "ai-block"); w.appendChild(pre); box.appendChild(w); }
+        const act = h("div", "ai-actions");
+        const ap = h("button", "ai-btn", T("تطبيق", "Apply"));
+        ap.type = "button";
+        ap.addEventListener("click", () => applyAction(x, ap));
+        btns.push({ x, ap });
+        act.appendChild(ap);
+        box.appendChild(act);
+        body.appendChild(box);
+      });
+      if (acts.length > 1) {
+        const all = h("button", "ai-btn", T("تطبيق الكل", "Apply all"));
+        all.type = "button";
+        all.addEventListener("click", () => { btns.forEach((o) => { if (!o.ap.disabled) applyAction(o.x, o.ap); }); all.disabled = true; });
+        const row = h("div", "ai-actions");
+        row.appendChild(all);
+        body.appendChild(row);
+      }
+    }
+    // ---------- تصدير المشروع لنموذج آخر + لصق سجله ----------
+    const MAX_EXPORT = 400000;
+    const TS_RE = /^\d{4}-\d\d-\d\d \d\d:\d\d:\d\d$/;
+    function fenceFor(code) {
+      let n = 3;
+      (code.match(/`+/g) || []).forEach((r) => { if (r.length >= n) n = r.length + 1; });
+      return "`".repeat(n);
+    }
+    function buildExport() {
+      const all = P.files().slice().sort((a, b) => (a.folder + "/" + a.name).localeCompare(b.folder + "/" + b.name));
+      const files = all.filter((f) => f.name !== LOG_NAME);
+      const tree = projectPaths().join("\n");
+      let head = "# Aysar project export\n\n> Generated: " + ts() + " | Files: " + files.length + "\n\n" +
+        "## Instructions for the AI model (read this first)\n\n" +
+        "You are helping a student with a code project exported from the \"Aysar\" code editor. The whole project is below: first the folder tree, then every file with its full content (the log file " + LOG_NAME + " is left out). You can NOT modify the project directly. Reply in the language the student writes in (Arabic by default).\n\n" +
+        "How to deliver changes:\n" +
+        "- For every file you change or add, give the COMPLETE new content of that file under a heading `### FILE: <full path>` followed by one fenced code block, so the student can paste it into the editor.\n" +
+        "- Do not touch files the student did not ask about, and do not invent files that are not shown here.\n\n" +
+        "REQUIRED: keep an activity log. At the very end of EVERY reply, add a section titled `## AI-LOG` with one line per step you took, exactly in this format:\n\n" +
+        "- YYYY-MM-DD HH:MM:SS | <your model name> | <action> | <full path of the file, or the word project> | <short reason>\n\n" +
+        "Allowed values for <action>: `اقتراح` (you proposed a change or a new file) or `رد بدون تعديل` (you only answered a question). If you do not know the current date and time, write ? in its place. The student will paste this section into the editor's log.\n\n" +
+        "## Project tree (folders end with /)\n\n```\n" + tree + "\n```\n\n## Files\n";
+      let out = head, omitted = [], count = 0;
+      files.forEach((f) => {
+        const path = (f.folder ? f.folder + "/" : "") + f.name, code = String(f.code || ""), fc = fenceFor(code);
+        const block = "\n### FILE: " + path + "\n\n" + fc + (f.lang && f.lang !== "plaintext" ? f.lang : "") + "\n" + code + "\n" + fc + "\n";
+        if (out.length + block.length > MAX_EXPORT) omitted.push(path);
+        else { out += block; count++; }
+      });
+      if (omitted.length) out += "\n## Files omitted because the export is too large\n\n" + omitted.map((x) => "- " + x).join("\n") + "\n";
+      return { text: out, count, omitted };
+    }
+    function download(name, text) {
+      const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = h("a");
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }
+    async function exportProject(how) {
+      const ex = buildExport();
+      const kb = Math.max(1, Math.round(ex.text.length / 1024));
+      let ok = true;
+      if (how === "copy") ok = await copyText(ex.text);
+      else { try { download("aysar-project.md", ex.text); } catch (e) { ok = false; } }
+      if (!ok) { line("err", T("تعذّر تجهيز الملف.", "Could not prepare the file.")); return; }
+      let msg = (how === "copy" ? T("نسخت المشروع", "Copied the project") : T("نزّلت الملف aysar-project.md", "Downloaded aysar-project.md")) + ": " + ex.count + " " + T("ملف", "files") + ", ≈" + kb + " KB. " +
+        T("أعطه لنموذج آخر، وسيُنهي كل رد بقسم AI-LOG تلصقه هنا بزر \"لصق سجل نموذج آخر\".", "Give it to another AI; it will end each reply with an AI-LOG section you can paste here with \"Paste another AI's log\".");
+      if (ex.omitted.length) msg += "\n" + T("تنبيه: حُذفت من الملف لكبر الحجم: ", "Note: omitted because of size: ") + ex.omitted.join(", ");
+      else if (kb > 300) msg += "\n" + T("تنبيه: الملف كبير وقد يتجاوز حد بعض النماذج.", "Note: the file is large and may exceed some models' limits.");
+      line("ai", msg);
+      logOp(T("أنت", "You"), T("تصدير المشروع", "Exported project"), ex.count + " " + T("ملف", "files") + ", " + kb + " KB" + (ex.omitted.length ? " | " + T("محذوف لكبر الحجم: ", "omitted: ") + ex.omitted.length : ""));
+    }
+    function externalEntries(text) {
+      const out = [];
+      String(text).split(/\r?\n/).forEach((raw) => {
+        let l = raw.trim();
+        if (!l || /^(`{3,}|~{3,})/.test(l) || /^#{1,6}\s/.test(l)) return;
+        l = l.slice(0, 600);
+        const parts = l.replace(/^[-*]\s*/, "").split("|").map((x) => x.trim());
+        if (parts.length >= 4) {
+          const [t0, who, action, where, ...rest] = parts;
+          out.push("- " + (TS_RE.test(t0) ? t0 : ts()) + " | " + (who || "?") + " " + T("(خارجي)", "(external)") + " | " + (action || "-") + " | " + (where || "-") + (rest.length ? " | " + rest.join(" | ") : ""));
+        } else {
+          out.push("- " + ts() + " | " + T("نموذج خارجي", "External AI") + " | " + T("ملصوق", "pasted") + " | - | " + l.replace(/\s+/g, " "));
+        }
+      });
+      return out.slice(0, 200);
+    }
+    function openPaste() {
+      if (!S) return;
+      const body = line("ai", T("الصق هنا قسم AI-LOG من رد النموذج الآخر، وسأضيفه إلى سجل المشروع.", "Paste the AI-LOG section from the other AI's reply; I will add it to the project log."));
+      const ta = h("textarea", "ai-paste");
+      ta.rows = 6;
+      ta.dir = "auto";
+      ta.placeholder = "- 2026-10-29 14:32:10 | ModelName | اقتراح | " + (S.file.folder ? S.file.folder + "/" : "") + "main.py | ...";
+      ta.setAttribute("aria-label", T("سجل النموذج الآخر", "Other AI's log"));
+      const row = h("div", "ai-actions");
+      const add = h("button", "ai-btn", T("إضافة إلى السجل", "Add to log"));
+      add.type = "button";
+      const cancel = h("button", "ai-btn", T("إلغاء", "Cancel"));
+      cancel.type = "button";
+      add.addEventListener("click", () => {
+        const entries = externalEntries(ta.value);
+        if (!entries.length) { say(T("لم أجد سطوراً صالحة في النص", "No usable lines found")); return; }
+        logOp(T("أنت", "You"), T("لصق سجل نموذج خارجي", "Pasted external AI log"), entries.length + " " + T("سطر", "lines"));
+        writeLog(entries.join("\n"));
+        ta.remove(); row.remove();
+        body.appendChild(h("div", "ai-p", T("✓ أُضيف " + entries.length + " سطر إلى AI-LOG.md", "✓ Added " + entries.length + " lines to AI-LOG.md")));
+        els.msgs.scrollTop = els.msgs.scrollHeight;
+      });
+      cancel.addEventListener("click", () => body.parentNode && body.parentNode.remove());
+      row.append(add, cancel);
+      body.append(ta, row);
+      els.msgs.scrollTop = els.msgs.scrollHeight;
+      ta.focus();
+    }
+    const pb = document.getElementById("btn-ai-project");
+    if (pb) {
+      const lbl = () => { pb.textContent = "✦ " + T("الذكاء", "AI"); pb.title = T("اسأل الذكاء الاصطناعي عن المشروع", "Ask AI about the project"); };
+      lbl();
+      new MutationObserver(lbl).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
+      pb.addEventListener("click", openProject);
+    }
+
+    // ---------- سجل AI-LOG.md (سطر لكل عملية) ----------
+    const p2 = (n) => String(n).padStart(2, "0");
+    function ts() {
+      const d = new Date();
+      return d.getFullYear() + "-" + p2(d.getMonth() + 1) + "-" + p2(d.getDate()) + " " + p2(d.getHours()) + ":" + p2(d.getMinutes()) + ":" + p2(d.getSeconds());
+    }
+    function logOp(who, action, detail, code, codeLang) {
+      if (!S || !S.file || S.file.name === LOG_NAME) return;
+      const rg = curRange();
+      const full = (S.file.folder ? S.file.folder + "/" : "") + S.file.name;
+      const where = S.mode === "project"
+        ? T("المشروع", "project") + (S.file.folder ? " (" + S.file.folder + ")" : "")
+        : full + (rg ? ":" + rg.a + "-" + rg.b : "");
+      const one = String(detail || "").replace(/\s+/g, " ").trim().slice(0, 500);
+      let entry = "- " + ts() + " | " + who + " | " + action + " | " + where + (one ? " | " + one : "");
+      if (code) {
+        const fence = code.includes("```") ? "~~~~" : "```";
+        const lg = codeLang !== undefined ? codeLang : S.file.lang;
+        const lang = lg && lg !== "plaintext" ? lg : "";
+        entry += "\n" + (fence + lang + "\n" + code + "\n" + fence).split("\n").map((l) => "  " + l).join("\n");
+      }
+      writeLog(entry);
+    }
+    // ملف سجل واحد للمشروع كله: في مجلد المشروع الأعلى (الجذر)، لا في مجلد الملف الذي حدث فيه التغيير
+    function logHome() {
+      const exist = P.files().find((x) => x.name === LOG_NAME && x.folder && !x.folder.includes("/"));
+      if (exist) return exist.folder; // لو يوجد سجل بالجذر نكمل عليه دائماً
+      const top = P.folders().find((f) => f && !f.includes("/"));
+      return top || String((S && S.file && S.file.folder) || "").split("/")[0];
+    }
+    function writeLog(entry) {
+      try {
+        const root = logHome();
+        const ex = P.files().find((x) => x.folder === root && x.name === LOG_NAME);
+        if (ex) P.updateFile(root, LOG_NAME, ex.code.replace(/\s+$/, "") + "\n" + entry + "\n");
+        else P.addFile({ folder: root, name: LOG_NAME, lang: "markdown", code: "<!-- " + T("سجل عمليات الذكاء الاصطناعي: يُكتب تلقائياً، سطر لكل عملية", "AI operations log: written automatically, one line per operation") + " -->\n\n" + entry + "\n" });
+      } catch (e) { console.warn("AI log failed:", e); }
+    }
+
+    window.AysarAI = { project: openProject, open: (ed) => openFor(ed || (window.__activeEditor && window.__activeEditor())), close: closeSession };
+  })();
 </script>
 <script>
 (() => {
-  const b = document.getElementById("btn-logout");
-  if (!b) return;
+  const out = document.getElementById("btn-logout"), all = document.getElementById("btn-logout-all");
+  if (!out || !all) return;
   const label = () => {
     const en = document.documentElement.lang === "en";
-    b.textContent = en ? "Log out" : "خروج";
-    b.title = en ? "Log out" : "تسجيل الخروج";
+    out.textContent = en ? "Log out" : "خروج";
+    out.title = en ? "Log out" : "تسجيل الخروج";
+    all.textContent = en ? "End all sessions" : "إنهاء كل الجلسات";
+    all.title = en ? "Log out on every device" : "إنهاء كل الجلسات على كل الأجهزة";
   };
   new MutationObserver(label).observe(document.documentElement, { attributes: true, attributeFilter: ["lang"] });
   label();
-  b.addEventListener("click", async () => {
-    try { await fetch("/api/logout", { method: "POST", credentials: "same-origin" }); } catch (e) {}
+  const post = async (path) => { try { await fetch(window.aysarApi(path), { method: "POST", credentials: "same-origin" }); } catch (e) {} };
+  out.addEventListener("click", async () => { await post("/api/auth/logout"); location.replace("/login"); });
+  all.addEventListener("click", async () => {
+    const en = document.documentElement.lang === "en";
+    if (!confirm(en ? "End all sessions on every device (including this one)?" : "إنهاء كل الجلسات على كل الأجهزة (بما فيها هذا الجهاز)؟")) return;
+    await post("/api/auth/logout-all");
     location.replace("/login");
   });
 })();

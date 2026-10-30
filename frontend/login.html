@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>window.aysarApi = window.aysarApi || function (p) { return ((window.AYSAR_CONFIG && window.AYSAR_CONFIG.API_BASE) || "") + p; };</script>
+<script src="/config.js"></script>
 <style>
   :root {
     --bg: #eef1ee;
@@ -151,7 +153,7 @@
     if (!username || !password) { err.textContent = "أدخل اسم المستخدم وكلمة المرور."; return; }
     go.disabled = true; go.textContent = "جارٍ الدخول...";
     try {
-      const r = await fetch("/api/login", {
+      const r = await fetch(window.aysarApi("/api/auth/login"), {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }), credentials: "same-origin",
       });

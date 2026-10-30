@@ -18,8 +18,10 @@ const httpErr = (status, message) => Object.assign(new Error(message), { status 
 const ext = (p) => path.extname(p).slice(1).toLowerCase();
 const stripBom = (s) => s.replace(/^\uFEFF/, "");
 
-function create({ host, port }) {
+// allow: لازم يكون true صراحةً (ENABLE_BRIDGE=true). بدونه يبقى الجسر مقفلاً حتى على جهازك.
+function create({ host, port, allow }) {
   const loopback = ["127.0.0.1", "localhost", "::1"].includes(host);
+  const enabled = loopback && allow === true;
   const token = crypto.randomBytes(24).toString("hex");
   let root = null;
   try {
@@ -301,7 +303,7 @@ function create({ host, port }) {
     return i === -1 ? s + tag : s.slice(0, i) + tag + s.slice(i);
   }
 
-  return { enabled: loopback, token, handle, injectToken, setRoot, stop: () => { stopWatch(); stopRun(); } };
+  return { enabled, token, handle, injectToken, setRoot, stop: () => { stopWatch(); stopRun(); } };
 }
 
 module.exports = { create };
